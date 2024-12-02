@@ -1,0 +1,68 @@
+{
+    "tokens":{
+        "usdc":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "weth":"0x4200000000000000000000000000000000000006",
+        "woofi_eth":"0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        "usdt":"0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2"
+    },
+    "dex": {
+        "pancake": {
+            "router_ca": "0x678Aa4bF4E210cf2166753e054d5b7c31cc7fa86",
+            "quoter_ca": "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+            "router_abi_path": "modules/abis/uniswap_v3_router.json",
+            "quoter_abi_path": "modules/abis/uniswap_quoter.json",
+            "fee":100
+        },
+        "uniswap": {
+            "router_ca": "0x2626664c2603336E57B271c5C0b26F421741e481",
+            "quoter_ca": "0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a",
+            "router_abi_path": "modules/abis/uniswap_v3_router.json",
+            "quoter_abi_path": "modules/abis/uniswap_quoter.json",
+            "fee":500
+        },
+        "woofi": {
+            "ca": "0x4c4AF8DBc524681930a27b2F1Af5bcC8062E6fB7",
+            "abi_path": "modules/abis/woofi.json"
+        },
+        "sqrtPriceLimitX96": 0
+    },
+    "bridge": {
+        "swap_ca": "0xB0D502E938ed5f4df2E681fE6E419ff29631d62b",
+        "eth_router":"0xB49c4e680174E331CB0A7fF3Ab58afC9738d5F8b",
+        "fee_ca": "0x701a95707A0290AC8B90b3719e8EE5b210360883",
+        "swap_abi_path": "modules/abis/stargate.json",
+        "fee_abi_path": "modules/abis/stargate_fee.json"
+    },
+    "dmail": {
+        "ca": "0x47fbe95e981C0Df9737B6971B451fB15fdC989d9",
+        "abi_path": "modules/abis/dmail.json"
+    },
+    "domains": {
+        "register_ca": "0x4cCb0BB02FCABA27e82a56646E81d8c5bC4119a5",
+        "resolver_ca": "0xC6d566A56A1aFf6508b41f6c90ff131615583BCD",
+        "register_abi_path": "modules/abis/bsn_regcontroller.json",
+        "resolver_abi_path": "modules/abis/bsn_resolver.json"
+    },
+    "liquid_pools": {
+        "aave": {
+            "proxy_base":"0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+            "eth_pool": "0x729b3EA8C005AbC58c9150fb57Ec161296F06766",
+            "abi_path": "modules/abis/aave.json"
+        },
+        "moonwell": {
+            "weth_router": "0x70778cfcFC475c7eA0f24cC625Baf6EaE475D0c9",
+            "meth_ca": "0x628ff693426583D9a7FB391E54366292F509D457", 
+            "abi_path": "modules/abis/moonwel_weth_router.json",
+            "mweth_abi_path": "modules/abis/mWETH.json"
+        }
+    },
+    "nft_mints": {
+        "zora": {
+            "ca":"0x777777EDF27Ac61671e3D5718b10bf6a8802f9f1",
+            "abi_path": "modules/abis/zora.json"
+        },
+        "nft2me": {
+            "abi_path": "modules/abis/nft2me.json"
+        }
+    }
+}
