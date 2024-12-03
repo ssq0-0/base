@@ -189,7 +189,7 @@ func (c *Client) ApproveTx(tokenAddr, spender, ownerAddr common.Address, private
 		return nil, fmt.Errorf("error waiting for transaction confirmation: %v", err)
 	}
 
-	logger.GlobalLogger.Infof("Approve transaction sent: https://basescan.org/tx/%s", chainID, signedTx.Hash().Hex())
+	logger.GlobalLogger.Infof("Approve transaction sent: https://basescan.org/tx/%s", signedTx.Hash().Hex())
 	time.Sleep(time.Second * 12)
 	return signedTx, nil
 }
@@ -254,7 +254,7 @@ func (c *Client) SendTransaction(privateKey *ecdsa.PrivateKey, ownerAddr, CA com
 		return fmt.Errorf("failed to send transaction: %v", err)
 	}
 
-	log.Printf("Transaction sent: https://basescan.org/tx/%s", signedTx.Hash().Hex())
+	logger.GlobalLogger.Infof("Transaction sent: https://basescan.org/tx/%s", signedTx.Hash().Hex())
 
 	return c.waitForTransactionSuccess(signedTx.Hash(), 1*time.Minute)
 }

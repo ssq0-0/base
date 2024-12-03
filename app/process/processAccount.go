@@ -73,7 +73,7 @@ func ProcessAccount(acc *account.Account, accConfig *account.RandomConfig, mainC
 	logger.GlobalLogger.Infof("Сгенерированная последовательность действий для аккаунта %d:\n%s", acc.AccountID, formattedSequence)
 
 	for idx, action := range actionSequence {
-		logger.GlobalLogger.Infof("Аккаунт %d ждт %v перед началом действия %d.", acc.AccountID, intervals[idx], idx+1)
+		logger.GlobalLogger.Infof("Аккаунт %d ждет %v перед началом действия %d.", acc.AccountID, intervals[idx], idx+1)
 		time.Sleep(intervals[idx])
 		logger.GlobalLogger.Infof("Аккаунт %d начинает выполнять действие: %s.", acc.AccountID, action.Type)
 
