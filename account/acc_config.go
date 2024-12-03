@@ -10,15 +10,15 @@ import (
 )
 
 type RandomConfig struct {
-	Wallets      []WalletConfig    `json:"wallets"`
-	Modules      ModulesConfig     `json:"modules"`
-	NFTContracts NFTCategories     `json:"nft_ca"`
-	Tokens       map[string]string `json:"tokens"`
+	Wallets      []WalletConfig `json:"wallets"`
+	Modules      ModulesConfig  `json:"modules"`
+	NFTContracts NFTCategories  `json:"nft_ca"`
 }
 
 type WalletConfig struct {
 	PrivateKey    string `json:"private_key"`
 	BaseName      string `json:"base_name"`
+	NameUsed      bool
 	UsedRange     int64  `json:"used_range"`
 	PoolUsedRange int64  `json:"used_range_in_pools"`
 	Bridge        string `json:"bridge"`
@@ -35,23 +35,21 @@ type NFTCategories struct {
 }
 
 type ModulesConfig struct {
-	Uniswap             bool `json:"uniswap"`
-	Pancake             bool `json:"pancake"`
-	Woofi               bool `json:"woofi"`
-	Zora                bool `json:"zora"`
-	NFT2Me              bool `json:"nft2me"`
-	BaseNames           bool `json:"basenames"`
-	Stargate            bool `json:"stargate"`
-	Dmail               bool `json:"dmail"`
-	Aave                bool `json:"aave"`
-	Moonwell            bool `json:"moonwell"`
-	AaveWithdrawAll     bool `json:"aave_withdraw_all"`
-	MoonwellWithdrawAll bool `json:"moonwell_withdraw_all"`
-	Collector           bool `json:"collector_mod"`
+	Uniswap   bool `json:"uniswap"`
+	Pancake   bool `json:"pancake"`
+	Woofi     bool `json:"woofi"`
+	Zora      bool `json:"zora"`
+	NFT2Me    bool `json:"nft2me"`
+	BaseNames bool `json:"basenames"`
+	Stargate  bool `json:"stargate"`
+	Dmail     bool `json:"dmail"`
+	Aave      bool `json:"aave"`
+	Moonwell  bool `json:"moonwell"`
+	Collector bool `json:"collector_mod"`
 }
 
-func LoadRandomConfig(path string) (RandomConfig, error) {
-	var cfg RandomConfig
+func LoadRandomConfig(path string) (*RandomConfig, error) {
+	var cfg *RandomConfig
 	file, err := os.Open(path)
 	if err != nil {
 		return cfg, err
@@ -63,7 +61,7 @@ func LoadRandomConfig(path string) (RandomConfig, error) {
 	return cfg, err
 }
 
-func InitializeAvailableNFTs(accConfig RandomConfig) map[string]map[common.Address]*big.Int {
+func InitializeAvailableNFTs(accConfig *RandomConfig) map[string]map[common.Address]*big.Int {
 	availableNFTs := make(map[string]map[common.Address]*big.Int)
 
 	if accConfig.Modules.NFT2Me {
@@ -95,12 +93,4 @@ func processNFTCategory(protocolName string, contracts map[string]string, availa
 
 		availableNFTs[protocolName][common.HexToAddress(addrStr)] = price
 	}
-}
-
-func ConvertStringsToAddresses(tokenMap map[string]string) map[string]common.Address {
-	tokens := make(map[string]common.Address)
-	for name, address := range tokenMap {
-		tokens[name] = common.HexToAddress(address)
-	}
-	return tokens
 }

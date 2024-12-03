@@ -54,6 +54,10 @@ var (
 	WooFiETH     = common.HexToAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
 )
 
+var (
+	AviableTokens = []common.Address{WETH, USDC, USDbC}
+)
+
 var TokenDecimals = map[common.Address]uint8{
 	WETH:         18,
 	WooFiETH:     18,
@@ -182,6 +186,92 @@ var (
 			"fee_ca":  common.HexToAddress("0x701a95707A0290AC8B90b3719e8EE5b210360883"),
 		},
 	}
+)
+
+var (
+	Erc20JSON = []byte(`[
+	{
+		"constant":true,
+		"inputs":[{"name":"account","type":"address"}],
+		"name":"balanceOf",
+		"outputs":[{"name":"","type":"uint256"}],
+		"payable":false,
+		"stateMutability":"view",
+		"type":"function"
+	},
+	{
+		"constant":true,
+		"inputs":[{"name":"spender","type":"address"},{"name":"owner","type":"address"}],
+		"name":"allowance",
+		"outputs":[{"name":"","type":"uint256"}],
+		"payable":false,
+		"stateMutability":"view",
+		"type":"function"
+	},
+	{
+		"constant":false,
+		"inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],
+		"name":"approve",
+		"outputs":[{"name":"","type":"bool"}],
+		"payable":false,
+		"stateMutability":"nonpayable",
+		"type":"function"
+	},
+	{
+		"constant":false,
+		"inputs":[{"name":"recipient","type":"address"},{"name":"amount","type":"uint256"}],
+		"name":"transfer",
+		"outputs":[{"name":"","type":"bool"}],
+		"payable":false,
+		"stateMutability":"nonpayable",
+		"type":"function"
+	},
+	{
+		"constant":false,
+		"inputs":[{"name":"sender","type":"address"},{"name":"recipient","type":"address"},{"name":"amount","type":"uint256"}],
+		"name":"transferFrom",
+		"outputs":[{"name":"","type":"bool"}],
+		"payable":false,
+		"stateMutability":"nonpayable",
+		"type":"function"
+	},
+	{
+		"constant":true,
+		"inputs":[],
+		"name":"decimals",
+		"outputs":[{"name":"","type":"uint8"}],
+		"payable":false,
+		"stateMutability":"view",
+		"type":"function"
+	},
+	{
+		"constant":true,
+		"inputs":[],
+		"name":"name",
+		"outputs":[{"name":"","type":"string"}],
+		"payable":false,
+		"stateMutability":"view",
+		"type":"function"
+	},
+	{
+		"constant":true,
+		"inputs":[],
+		"name":"symbol",
+		"outputs":[{"name":"","type":"string"}],
+		"payable":false,
+		"stateMutability":"view",
+		"type":"function"
+	},
+	{
+		"constant":true,
+		"inputs":[],
+		"name":"totalSupply",
+		"outputs":[{"name":"","type":"uint256"}],
+		"payable":false,
+		"stateMutability":"view",
+		"type":"function"
+	}
+]`)
 )
 
 const (

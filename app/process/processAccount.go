@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func ProcessAccount(acc *account.Account, accConfig account.RandomConfig, mainConfig *cfg.Config, clients map[string]*ethClient.Client, randomizer *randomization.Randomizer, mods *modules.Modules, memory *Memory) {
+func ProcessAccount(acc *account.Account, accConfig *account.RandomConfig, mainConfig *cfg.Config, clients map[string]*ethClient.Client, randomizer *randomization.Randomizer, mods *modules.Modules, memory *Memory) {
 	if strings.TrimSpace(acc.Bridge) != "" && strings.TrimSpace(acc.TokenBridge) != "" {
 		if err := bridgeToBase(acc, mainConfig, clients, mods); err != nil {
 			logger.GlobalLogger.Warn(err)
@@ -49,7 +49,7 @@ func ProcessAccount(acc *account.Account, accConfig account.RandomConfig, mainCo
 
 		logger.GlobalLogger.Infof("Продолжаем выполнение для аккаунта %d с действия %d", acc.AccountID, lastProcessedIndex+1)
 	} else {
-		actionSequence, err = randomizer.GenerateActionSequence(accConfig.Modules, accConfig.Wallets[acc.AccountID-1], acc)
+		actionSequence, err = randomizer.GenerateActionSequence(&accConfig.Modules, &accConfig.Wallets[acc.AccountID-1], acc)
 		if err != nil {
 			logger.GlobalLogger.Errorf("Ошибка генерации действий для аккаунта %d: %v", acc.AccountID, err)
 			return
@@ -73,23 +73,25 @@ func ProcessAccount(acc *account.Account, accConfig account.RandomConfig, mainCo
 	logger.GlobalLogger.Infof("Сгенерированная последовательность действий для аккаунта %d:\n%s", acc.AccountID, formattedSequence)
 
 	for idx, action := range actionSequence {
-		logger.GlobalLogger.Infof("Account %d waits %v before executing action %d.", acc.AccountID, intervals[idx], idx+1)
+		logger.GlobalLogger.Infof("Аккаунт %d ждт %v перед началом действия %d.", acc.AccountID, intervals[idx], idx+1)
 		time.Sleep(intervals[idx])
-		logger.GlobalLogger.Infof("Account %d starts executing action: %s.", acc.AccountID, action.Type)
+		logger.GlobalLogger.Infof("Аккаунт %d начинает выполнять действие: %s.", acc.AccountID, action.Type)
 
 		if err = action.TakeActions(*mods, acc, action, clients["base"], mainConfig); err != nil {
-			logger.GlobalLogger.Warnf("Error executing action (%s) for account %d: %v", action.Type, acc.AccountID, err)
+			logger.GlobalLogger.Warnf("Ошибка выполнения действия (%s) для аккаунта %d: %v", action.Type, acc.AccountID, err)
 		} else {
-			logger.GlobalLogger.Infof("Action (%s) for account %d executed successfully.", action.Type, acc.AccountID)
+			logger.GlobalLogger.Infof("Действие (%s) для аккаунта %d выполнено успешно.", action.Type, acc.AccountID)
 		}
 
 		if err := memory.UpdateState(acc.AccountID, action, intervals[idx]); err != nil {
-			logger.GlobalLogger.Errorf("Error updating state for account %d: %v", acc.AccountID, err)
+			logger.GlobalLogger.Errorf("Ошибка обновления состояния аккаунта %d: %v", acc.AccountID, err)
 		}
 	}
 
+	if err := memory.ClearState(acc.AccountID); err != nil {
+		logger.GlobalLogger.Errorf("Ошибка очистки состояния для аккаунта %d: %v", acc.AccountID, err)
+	}
 	logger.GlobalLogger.Infof("Завершение обработки аккаунта %d.", acc.AccountID)
-	memory.ClearState()
 }
 
 func bridgeToBase(acc *account.Account, mainConfig *cfg.Config, clients map[string]*ethClient.Client, mods *modules.Modules) error {

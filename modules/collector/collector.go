@@ -8,7 +8,6 @@ import (
 	"base/modules/dex"
 	"base/modules/liquid_pools/aave"
 	"base/modules/liquid_pools/moonwell"
-	"errors"
 	"fmt"
 	"math/big"
 	"sync"
@@ -89,13 +88,18 @@ func (c *Collector) processERC20Token(acc *account.Account, t TokenInfo, mu *syn
 }
 
 func (c *Collector) processLiquidityPoolToken(acc *account.Account, t TokenInfo, mu *sync.Mutex) error {
+	balance, shouldProcess := c.checkAndNormalizeBalance(acc, t.Address, mu)
+	if !shouldProcess {
+		return nil
+	}
+
 	switch t.Type {
 	case AaveLiquidityPool:
 		aavePool, ok := t.Pool.(*aave.Aave)
 		if !ok {
 			return fmt.Errorf("incorrect pool type for token %s", t.Address.Hex())
 		}
-		if err := c.handleAaveToken(acc, aavePool, t.Address); err != nil {
+		if err := c.handleAaveToken(acc, aavePool, t.Address, balance); err != nil {
 			return err
 		}
 	case MoonwellLiquidityPool:
@@ -110,11 +114,6 @@ func (c *Collector) processLiquidityPoolToken(acc *account.Account, t TokenInfo,
 		return fmt.Errorf("unknown token type for token %s", t.Address.Hex())
 	}
 
-	balance, shouldProcess := c.checkAndNormalizeBalance(acc, t.Address, mu)
-	if !shouldProcess {
-		return nil
-	}
-
 	if err := c.ApproveAndSwap(acc, t.Address, balance); err != nil {
 		return err
 	}
@@ -125,10 +124,6 @@ func (c *Collector) processLiquidityPoolToken(acc *account.Account, t TokenInfo,
 
 func (c *Collector) rollbackAllowances(acc *account.Account) error {
 	logger.GlobalLogger.Infof("Начало отката allowances для аккаунта: %s", acc.Address.Hex())
-
-	var (
-		errs []error
-	)
 
 	for _, tokenInfo := range c.availableTokens {
 		token := tokenInfo.Address
@@ -151,24 +146,15 @@ func (c *Collector) rollbackAllowances(acc *account.Account) error {
 		}
 	}
 
-	if len(errs) > 0 {
-		errMsg := "Откат allowances завершился с ошибками:\n"
-		for _, e := range errs {
-			errMsg += fmt.Sprintf("- %v\n", e)
-		}
-		return errors.New(errMsg)
-	}
-
 	logger.GlobalLogger.Infof("Откат allowances завершен успешно для аккаунта: %s", acc.Address.Hex())
 	return nil
 }
 
-func (c *Collector) handleAaveToken(acc *account.Account, aavePool *aave.Aave, token common.Address) error {
+func (c *Collector) handleAaveToken(acc *account.Account, aavePool *aave.Aave, token common.Address, balance *big.Int) error {
 	switch token {
 	case config.AaveWETH:
 		logger.GlobalLogger.Infof("Выводим WETH из Aave для токена %s", token.Hex())
-		return nil
-		//  aavePool.WithdrawETH(acc)
+		return aavePool.WithdrawETH(acc, balance)
 	case config.AaveUSDC:
 		logger.GlobalLogger.Infof("Выводим USDC из Aave для токена %s", token.Hex())
 		return aavePool.Withdraw(acc, config.USDC)

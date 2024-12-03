@@ -72,3 +72,19 @@ func (a *Aave) Withdraw(acc *account.Account, tokenOut common.Address) error {
 
 	return a.Client.SendTransaction(acc.PrivateKey, acc.Address, a.ProxyBase, a.Client.GetNonce(acc.Address), big.NewInt(0), data)
 }
+
+func (a *Aave) packDeposit(ownerAddr common.Address) ([]byte, error) {
+	return a.ABI.Pack("depositETH", a.ProxyBase, ownerAddr, uint16(0))
+}
+
+func (a *Aave) packWithdraw(ownerAddr common.Address, amountOut *big.Int) ([]byte, error) {
+	return a.ABI.Pack("withdrawETH", a.ProxyBase, amountOut, ownerAddr)
+}
+
+func (a *Aave) packSupply(tokenIn, ownerAddr common.Address, amountIn *big.Int) ([]byte, error) {
+	return a.ABI.Pack("supply", tokenIn, amountIn, ownerAddr, uint16(0))
+}
+
+func (a *Aave) packWithdrawStable(tokenOut, ownerAddr common.Address, amountOut *big.Int) ([]byte, error) {
+	return a.ABI.Pack("withdraw", tokenOut, amountOut, ownerAddr)
+}

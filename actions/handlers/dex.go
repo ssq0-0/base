@@ -6,6 +6,7 @@ import (
 	cfg "base/config"
 	"base/ethClient"
 	"base/modules"
+	"base/utils"
 	"errors"
 	"math/big"
 
@@ -27,7 +28,7 @@ func (dh DexHandler) Execute(acc *account.Account, mods modules.Modules, client 
 	}
 
 	var value *big.Int
-	if dh.isNativeToken(dh.DexParams.FromToken) {
+	if utils.IsNativeToken(dh.DexParams.FromToken) {
 		value = amountToSwap
 	}
 
@@ -38,7 +39,7 @@ func (dh DexHandler) Execute(acc *account.Account, mods modules.Modules, client 
 			return err
 		}
 
-		if dh.isNativeToken(dh.DexParams.ToToken) {
+		if utils.IsNativeToken(dh.DexParams.ToToken) {
 			err = dex.SwapToETH(dh.DexParams.FromToken, dh.DexParams.ToToken, amountToSwap, big.NewInt(0), acc)
 		} else {
 			err = dex.Swap(dh.DexParams.FromToken, dh.DexParams.ToToken, amountToSwap, value, acc)
@@ -49,7 +50,7 @@ func (dh DexHandler) Execute(acc *account.Account, mods modules.Modules, client 
 			return err
 		}
 
-		if dh.isNativeToken(dh.DexParams.ToToken) {
+		if utils.IsNativeToken(dh.DexParams.ToToken) {
 			err = dex.SwapToETH(dh.DexParams.FromToken, dh.DexParams.ToToken, amountToSwap, big.NewInt(0), acc)
 		} else {
 			err = dex.Swap(dh.DexParams.FromToken, dh.DexParams.ToToken, amountToSwap, value, acc)
@@ -78,10 +79,6 @@ func (dh DexHandler) Execute(acc *account.Account, mods modules.Modules, client 
 func (dh *DexHandler) ensureApproval(client *ethClient.Client, acc *account.Account, routerCA common.Address, value *big.Int) error {
 	_, err := client.ApproveTx(dh.DexParams.FromToken, routerCA, acc.Address, acc.PrivateKey, value, false)
 	return err
-}
-
-func (dh *DexHandler) isNativeToken(token common.Address) bool {
-	return token == cfg.WETH || token == cfg.WooFiETH
 }
 
 func (dh *DexHandler) calculateAmountToSwap(acc *account.Account, client *ethClient.Client) (*big.Int, error) {

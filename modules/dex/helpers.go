@@ -2,35 +2,12 @@ package dex
 
 import (
 	"base/ethClient"
-	"base/models"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 )
-
-func (v3 *V3Router) packTxData(ownerAddr, fromToken, toToken common.Address, feeOrTickSpacing, amountIn, amountMinOut, sqrtPriceLimitX96 *big.Int, routerABI *abi.ABI) ([]byte, error) {
-	return routerABI.Pack("exactInputSingle", models.ExactInputSingleParams{
-		TokenIn:           fromToken,
-		TokenOut:          toToken,
-		Fee:               feeOrTickSpacing,
-		Recipient:         ownerAddr,
-		AmountIn:          amountIn,
-		AmountOutMinimum:  amountMinOut,
-		SqrtPriceLimitX96: sqrtPriceLimitX96,
-	})
-}
-
-func (v3 *V3Router) packQuoteData(fromToken, toToken common.Address, feeOrTickSpacing, amountIn *big.Int, quoterABI *abi.ABI) ([]byte, error) {
-	return quoterABI.Pack("quoteExactInputSingle", models.OtherDexParams{
-		TokenIn:           fromToken,
-		TokenOut:          toToken,
-		AmountIn:          amountIn,
-		Fee:               feeOrTickSpacing,
-		SqrtPriceLimitX96: big.NewInt(0),
-	})
-}
 
 func getAmountMin(toCA common.Address, data []byte, client *ethClient.Client, abi *abi.ABI, methodName string, slippage *big.Float) (*big.Int, error) {
 	result, err := client.CallCA(toCA, data)

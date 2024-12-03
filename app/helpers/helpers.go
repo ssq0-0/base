@@ -3,12 +3,13 @@ package helpers
 import (
 	"base/actions"
 	"base/actions/types"
+	"base/utils"
 	"fmt"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/ethereum/go-ethereum/common"
 )
 
 func FormatActionSequence(actionSequence []actions.Action, intervals []time.Duration) string {
@@ -35,15 +36,12 @@ func FormatActionSequence(actionSequence []actions.Action, intervals []time.Dura
 	return builder.String()
 }
 
-func AvailableTokensToSlice(tokenMap map[string]common.Address) []common.Address {
-	tokens := make([]common.Address, 0, len(tokenMap))
-	for _, address := range tokenMap {
-		tokens = append(tokens, address)
-	}
-	return tokens
-}
-
 func GetRandomDuration(min, max int) time.Duration {
+	if min < 0 || max < 0 {
+		min = 20
+		max = 40
+	}
+
 	if min >= max {
 		return time.Duration(min) * time.Minute
 	}
@@ -65,4 +63,29 @@ func DistributeActionsOverDuration(numActions int, totalDuration time.Duration) 
 	}
 
 	return intervals
+}
+
+func AllPathInit() (string, string, string, error) {
+	rootDir := utils.GetRootDir()
+
+	accConfigPath := filepath.Join(rootDir, "account", "account_config.json")
+	if _, err := os.Stat(accConfigPath); os.IsNotExist(err) {
+		return "", "", "", fmt.Errorf("файл не найден: %s", accConfigPath)
+	}
+
+	configPath := filepath.Join(rootDir, "config", "config.json")
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return "", "", "", fmt.Errorf("файл не найден: %s", configPath)
+	}
+
+	stateFilePath := filepath.Join(rootDir, "app", "process", "state.json")
+	if _, err := os.Stat(stateFilePath); os.IsNotExist(err) {
+		file, err := os.Create(stateFilePath)
+		if err != nil {
+			return "", "", "", fmt.Errorf("не удалось создать файл состояния: %v", err)
+		}
+		defer file.Close()
+	}
+
+	return accConfigPath, configPath, stateFilePath, nil
 }

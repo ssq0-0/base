@@ -3,7 +3,6 @@ package randomization
 import (
 	"base/actions/types"
 	"base/config"
-	"base/logger"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -28,13 +27,10 @@ func isValidPoolAction(actionType types.ActionType, actionsList []string) bool {
 
 	switch {
 	case isDepositAction(actionType) && lastPoolAction == "deposit":
-		logger.GlobalLogger.Infof("Действие %s нарушает чередование: последнее было deposit.", actionType)
 		return false
 	case isWithdrawAction(actionType) && lastPoolAction == "withdraw":
-		logger.GlobalLogger.Infof("Действие %s нарушает чередование: последнее было withdraw.", actionType)
 		return false
 	case isWithdrawAction(actionType) && !hasCorrespondingDeposit(actionType, actionsList):
-		logger.GlobalLogger.Infof("Действие %s не имеет соответствующего депозита.", actionType)
 		return false
 	default:
 		return true

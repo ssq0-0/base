@@ -31,7 +31,7 @@ func NewWooFi(client *ethClient.Client, ca, abiPath string) (*WooFi, error) {
 }
 
 func (wf *WooFi) Swap(fromToken, toToken common.Address, amountIn, value *big.Int, acc *account.Account) error {
-	amountMinOut, err := wf.QuerySwap(fromToken, toToken, amountIn)
+	amountMinOut, err := wf.querySwap(fromToken, toToken, amountIn)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (wf *WooFi) Swap(fromToken, toToken common.Address, amountIn, value *big.In
 	return wf.Client.SendTransaction(acc.PrivateKey, acc.Address, wf.CA, wf.Client.GetNonce(acc.Address), value, data)
 }
 
-func (wf *WooFi) QuerySwap(fromToken, toToken common.Address, amountIn *big.Int) (*big.Int, error) {
+func (wf *WooFi) querySwap(fromToken, toToken common.Address, amountIn *big.Int) (*big.Int, error) {
 	data, err := wf.ABI.Pack("tryQuerySwap", fromToken, toToken, amountIn)
 	if err != nil {
 		return nil, err

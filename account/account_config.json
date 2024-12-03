@@ -1,48 +1,36 @@
 {
+    "_example_wallet_config":{
+        "private_key":"privateKey1",
+        "base_name":"поместите здесь имя для вашего BaseName. Формат - 'examplebasename'. Без '.base.eth'",
+        "used_range":"здесь должно быть целое число. Это процент от баланса, который используется в процессе работы.",
+        "used_range_in_pools":"тоже самое, что и выше, но для пулов ликвидности. Рекомендация - максимум 20-30.",
+        "bridge":"если нужен депозит в сеть перед началом- пишем здесь название сети из которой будет бридж. Формат - 'optimism', 'arbitrum', 'avalanche'. Полностью, без привычных сокращений",
+        "token":"если нужен депозит в сеть перед началом - пишем здесь название токена. Формат - 'usdt', 'usdc'...",
+        "action_num_min":"здесь должно быть целое число. Это минимальное количество действий для аккаунта",
+        "action_num_max":"здесь должно быть целое число. Это максимальное количество действий для аккаунта",
+        "action_time_window_MIN":"тоже самое, что и выше пунктом, но для времени выполнения аккаунта. Указывать в минутах",
+        "action_time_window_MAX":"максимальное время выполнения аккаунта. Указывать в минутах"
+    },
     "wallets":[
         {
-            "private_key":"0x1",
-            "base_name":"",
-            "used_range":63,
-            "used_range_in_pools":13,
-            "bridge":"",
-            "token":"",
-            "action_num_min":15,
-            "action_num_max":32,
-            "action_time_window_MIN":89,
-            "action_time_window_MAX":95
-        },
-        {
-            "private_key":"0x2",
-            "base_name":"",
-            "used_range":71,
-            "used_range_in_pools":17,
-            "bridge":"",
-            "token":"",
-            "action_num_min":10,
-            "action_num_max":17,
-            "action_time_window_MIN":44,
-            "action_time_window_MAX":67
-        },
-        {
-            "private_key":"0x3",
-            "base_name":"",
-            "used_range":54,
-            "used_range_in_pools":9,
-            "bridge":"",
-            "token":"",
-            "action_num_min":30,
-            "action_num_max":35,
-            "action_time_window_MIN":78,
-            "action_time_window_MAX":93
+            "private_key":"privateKey1",
+            "base_name":"simpleexamplebasenameforacc",
+            "used_range":73,
+            "used_range_in_pools":11,
+            "bridge":"optimism",
+            "token":"usdc",
+            "action_num_min":20,
+            "action_num_max":33,
+            "action_time_window_MIN":141,
+            "action_time_window_MAX":247
         }
     ],
     "modules":{
-        "uniswap":true,
+        "uniswap":false,
         "pancake":false,
-        "woofi":true,
-        "dmail":true,
-        "zora":true,
+        "woofi":false,
+        "dmail":false,
+        "zora":false,
         "nft2me":false,
         "aave":false,
         "moonwell":false,
@@ -51,17 +39,13 @@
     },
     "nft_ca":{
         "nf2me":{
-            "0x60b400dC94195076580b3556004E87488C10FC83": "0.0002",
-            "0xAF77076CdB1e124DF7868f9d82504412161C97F2":"0.0002"
+            "0x9990C5bB838A9E8772082B29c87198B6abd439a1":"0.0002",
+            "0x716764D9bCb01743370e86493a7F458aCEfB113f":"0.0002",
+            "0xA402Ef3Ff226aB45e60b4D3dbd5ACe5635D5Fd7d":"0.0002"
         },
         "zora":{
             "0x4E344A4C22765161F2c038F2E9354d6f3ba8e94A":"0.000051",
             "0xb4703a3a73aec16e764cbd210b0fde9efdab8941":"0.000042"
         }
-    },
-    "tokens":{
-        "weth":"0x4200000000000000000000000000000000000006",
-        "usdc":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-        "usdbc":"0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"
     }
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -9,7 +8,6 @@ import (
 	"base/account"
 	"base/ethClient"
 	"base/logger"
-	"base/utils"
 
 	"base/actions/randomization"
 	"base/app/helpers"
@@ -27,12 +25,16 @@ func main() {
 	logger.GlobalLogger.Info(cfg.Subscribe)
 	logger.GlobalLogger.Infof(cfg.DonateSOL)
 	logger.GlobalLogger.Infof(cfg.DonateEVM)
-	logger.GlobalLogger.Infof(cfg.DonateEVM)
 	time.Sleep(time.Second * 5)
 
-	accConfig, err := account.LoadRandomConfig(fmt.Sprintf("%s/%s", utils.GetRootDir(), "account/account_config.json"))
+	accConfigPath, configPath, statePath, err := helpers.AllPathInit()
 	if err != nil {
-		logger.GlobalLogger.Fatalf("не удалось загрузить рандомную конфигурацию: %v", err)
+		logger.GlobalLogger.Fatalf("Ошибка инициализации путей конфигурационных файлов: %v", err)
+	}
+
+	accConfig, err := account.LoadRandomConfig(accConfigPath)
+	if err != nil {
+		logger.GlobalLogger.Fatalf("не удалось загрузить конфигурацию для рандомизации: %v", err)
 	}
 	logger.GlobalLogger.Info("конфигурация рандомизации успешно загружена.")
 
@@ -45,7 +47,7 @@ func main() {
 		logger.GlobalLogger.Fatalf("Нет созданных аккаунтов. Проверьте приватные ключи в конфигурации.")
 	}
 
-	config, err := cfg.LoadConfig(fmt.Sprintf("%s/%s", utils.GetRootDir(), "config/config.json"))
+	config, err := cfg.LoadConfig(configPath)
 	if err != nil {
 		logger.GlobalLogger.Fatalf("ошибка загрузки основного конфига, проверьте его целостность: %v", err)
 	}
@@ -53,14 +55,18 @@ func main() {
 
 	var clients = make(map[string]*ethClient.Client)
 	for chain, rpc := range cfg.RPCs {
-		client := ethClient.NewClient(rpc)
-		if client == nil {
-			logger.GlobalLogger.Errorf("ошибка создания eth client. Проверьте RPC.")
+		client, err := ethClient.NewClient(rpc)
+		if err != nil {
+			logger.GlobalLogger.Errorf("Ошибка создания eth client для сети %s: %v", chain, err)
 			continue
 		}
 		clients[chain] = client
 	}
 	defer ethClient.CloseAllClients(clients)
+
+	if len(clients) == 0 {
+		logger.GlobalLogger.Fatalf("Не удалось создать ни одного клиента. Проверьте настройки RPC.")
+	}
 
 	mods, err := modules.InitializeModules(*config, clients)
 	if err != nil {
@@ -69,32 +75,12 @@ func main() {
 	logger.GlobalLogger.Info("Все модули успешно инициализированы. Спим 2 секунды.")
 	time.Sleep(time.Second * 2)
 
-	stateFilePath := fmt.Sprintf("%s/%s", utils.GetRootDir(), "app/process/state.json")
-	memoryHandler := process.NewMemory(stateFilePath)
-	stateExists, err := memoryHandler.IsStateFileNotEmpty()
-	if err != nil {
-		logger.GlobalLogger.Errorf("Ошибка проверки состояния: %v", err)
-		return
-	}
+	memoryHandler := process.NewMemory(statePath)
 
-	if stateExists {
-		var userInput string
-		fmt.Println("Продолжить выполнение? (y/n): ")
-		fmt.Scanln(&userInput)
+	process.UploadOldAction(memoryHandler)
 
-		if userInput != "y" {
-			err := memoryHandler.ClearState()
-			if err != nil {
-				logger.GlobalLogger.Errorf("Ошибка очистки состояния: %v", err)
-				return
-			}
-		}
-	} else {
-		logger.GlobalLogger.Info("Файл состояния пуст. Начинаем выполнение с чистого листа.")
-	}
-
-	availableNFTs, aviableTokens := account.InitializeAvailableNFTs(accConfig), account.ConvertStringsToAddresses(accConfig.Tokens)
-	randomizer := randomization.NewRandomizer(helpers.AvailableTokensToSlice(aviableTokens), availableNFTs, clients)
+	availableNFTs := account.InitializeAvailableNFTs(accConfig)
+	randomizer := randomization.NewRandomizer(cfg.AviableTokens, availableNFTs, clients)
 
 	var wg sync.WaitGroup
 	for _, acc := range accounts {

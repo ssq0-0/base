@@ -31,12 +31,12 @@ func NewDmail(client *ethClient.Client, ca, abiPath string) (*Dmail, error) {
 }
 
 func (d *Dmail) SendMail(acc *account.Account) error {
-	emailHash, err := d.GenerateRandomSHA256()
+	emailHash, err := d.generateRandomSHA256()
 	if err != nil {
 		return fmt.Errorf("failed to generate email hash: %w", err)
 	}
 
-	themeHash, err := d.GenerateRandomSHA256()
+	themeHash, err := d.generateRandomSHA256()
 	if err != nil {
 		return fmt.Errorf("failed to generate theme hash: %w", err)
 	}
@@ -49,7 +49,7 @@ func (d *Dmail) SendMail(acc *account.Account) error {
 	return d.Client.SendTransaction(acc.PrivateKey, acc.Address, d.CA, d.Client.GetNonce(acc.Address), big.NewInt(0), data)
 }
 
-func (d *Dmail) GenerateRandomSHA256() (string, error) {
+func (d *Dmail) generateRandomSHA256() (string, error) {
 	length, err := generateRandomInt(1, 16)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate random length: %w", err)

@@ -34,13 +34,13 @@ func NewRandomizer(availableTokens []common.Address, availableNFTs map[string]ma
 	}
 }
 
-func (r *Randomizer) GenerateActionSequence(modules account.ModulesConfig, walletConfig account.WalletConfig, acc *account.Account) ([]actions.Action, error) {
+func (r *Randomizer) GenerateActionSequence(modules *account.ModulesConfig, walletConfig *account.WalletConfig, acc *account.Account) ([]actions.Action, error) {
 	numActions, err := getNumActions(walletConfig)
 	if err != nil {
 		numActions = 10
 	}
 
-	availableActionTypes := getAvailableActions(modules)
+	availableActionTypes := getAvailableActions(modules, walletConfig)
 	if len(availableActionTypes) == 0 {
 		return nil, errors.New("no action types available for generation")
 	}
@@ -54,9 +54,16 @@ func (r *Randomizer) GenerateActionSequence(modules account.ModulesConfig, walle
 	}
 
 	actionsList, actionTypeList := make([]actions.Action, 0, numActions), make([]string, 0, numActions)
-
+	baseNameActionAdded := walletConfig.NameUsed
 	for i := 0; i < numActions; i++ {
 		actionType := availableActionTypes[rand.Intn(len(availableActionTypes))]
+
+		if actionType == types.BaseNameAction {
+			if baseNameActionAdded {
+				continue
+			}
+			baseNameActionAdded = true
+		}
 
 		if (isDepositAction(actionType) || isWithdrawAction(actionType)) &&
 			!isValidPoolAction(actionType, actionTypeList) {

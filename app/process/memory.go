@@ -3,7 +3,10 @@ package process
 import (
 	"base/actions"
 	"encoding/json"
+	"fmt"
+	"io"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -22,6 +25,7 @@ type AccountState struct {
 
 type Memory struct {
 	StateFilePath string
+	mu            sync.Mutex
 }
 
 func NewMemory(stateFilePath string) *Memory {
@@ -29,6 +33,9 @@ func NewMemory(stateFilePath string) *Memory {
 }
 
 func (m *Memory) SaveState(state *AccountState) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	file, err := os.OpenFile(m.StateFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
@@ -61,6 +68,87 @@ func (m *Memory) SaveState(state *AccountState) error {
 }
 
 func (m *Memory) LoadState(accountID int) (*AccountState, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	_, err := os.Stat(m.StateFilePath)
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("ошибка доступа к файлу состояния: %v", err)
+	}
+
+	file, err := os.Open(m.StateFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка открытия файла состояния: %v", err)
+	}
+	defer file.Close()
+
+	var states []AccountState
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&states)
+	if err != nil && err != io.EOF {
+		return nil, fmt.Errorf("ошибка декодирования файла состояния: %v", err)
+	}
+
+	for _, state := range states {
+		if state.AccountID == accountID {
+			return &state, nil
+		}
+	}
+	return nil, nil
+}
+
+func (m *Memory) IsStateFileNotEmpty() (bool, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	_, err := os.Stat(m.StateFilePath)
+	if os.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, fmt.Errorf("ошибка доступа к файлу состояния: %v", err)
+	}
+
+	file, err := os.Open(m.StateFilePath)
+	if err != nil {
+		return false, fmt.Errorf("ошибка открытия файла состояния: %v", err)
+	}
+	defer file.Close()
+
+	var states []AccountState
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&states)
+	if err != nil && err != io.EOF {
+		return false, fmt.Errorf("ошибка декодирования файла состояния: %v", err)
+	}
+
+	return len(states) > 0, nil
+}
+
+func (m *Memory) UpdateState(accountID int, completedAction actions.Action, interval time.Duration) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	state, err := m.loadStateWithoutLock(accountID)
+	if err != nil {
+		return err
+	}
+
+	if state == nil {
+		state = &AccountState{AccountID: accountID}
+	}
+
+	state.CompletedActions = append(state.CompletedActions, completedAction)
+	state.TotalElapsedTime += interval
+	state.LastProcessedTime = time.Now()
+	state.ActionIntervals = append(state.ActionIntervals, interval)
+	state.LastActionTime = time.Now()
+
+	return m.saveStateWithoutLock(state)
+}
+
+func (m *Memory) loadStateWithoutLock(accountID int) (*AccountState, error) {
 	file, err := os.Open(m.StateFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -85,42 +173,68 @@ func (m *Memory) LoadState(accountID int) (*AccountState, error) {
 	return nil, nil
 }
 
-func (m *Memory) IsStateFileNotEmpty() (bool, error) {
-	file, err := os.Open(m.StateFilePath)
+func (m *Memory) saveStateWithoutLock(state *AccountState) error {
+	file, err := os.OpenFile(m.StateFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
-		return false, err
+		return err
 	}
 	defer file.Close()
 
 	var states []AccountState
 	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&states)
-	if err != nil && err.Error() != "EOF" {
-		return false, err
-	}
-
-	return len(states) > 0, nil
-}
-
-func (m *Memory) UpdateState(accountID int, completedAction actions.Action, interval time.Duration) error {
-	state, err := m.LoadState(accountID)
-	if err != nil {
+	if err := decoder.Decode(&states); err != nil && err.Error() != "EOF" {
 		return err
 	}
 
-	if state == nil {
-		state = &AccountState{AccountID: accountID}
+	var found bool
+	for i, existingState := range states {
+		if existingState.AccountID == state.AccountID {
+			states[i] = *state
+			found = true
+			break
+		}
 	}
 
-	state.CompletedActions = append(state.CompletedActions, completedAction)
-	state.TotalElapsedTime += interval
-	state.LastProcessedTime = time.Now()
-	state.ActionIntervals = append(state.ActionIntervals, interval)
-	state.LastActionTime = time.Now()
+	if !found {
+		states = append(states, *state)
+	}
 
-	return m.SaveState(state)
+	file.Seek(0, 0)
+	file.Truncate(0)
+	encoder := json.NewEncoder(file)
+	return encoder.Encode(states)
 }
 
-func (m *Memory) ClearState() error {
+func (m *Memory) ClearState(accountID int) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	file, err := os.OpenFile(m.StateFilePath, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var states []AccountState
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&states); err != nil && err.Error() != "EOF" {
+		return err
+	}
+
+	var updatedStates []AccountState
+	for _, state := range states {
+		if state.AccountID != accountID {
+			updatedStates = append(updatedStates, state)
+		}
+	}
+
+	file.Seek(0, 0)
+	file.Truncate(0)
+	encoder := json.NewEncoder(file)
+	return encoder.Encode(updatedStates)
+}
+
+func (m *Memory) ClearAllStates() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	return os.Truncate(m.StateFilePath, 0)
 }

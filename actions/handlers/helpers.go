@@ -34,13 +34,13 @@ func getTokenBalance(acc *account.Account, client *ethClient.Client, token commo
 	if isETH {
 		balanceWei, err := client.Client.BalanceAt(context.Background(), acc.Address, nil)
 		if err != nil {
-			return nil, fmt.Errorf("ошибка получения баланса нативного токена: %v", err)
+			return nil, fmt.Errorf("failed get native balance: %v", err)
 		}
 		return balanceWei, nil
 	} else {
 		erc20Balance, err := client.BalanceCheck(acc.Address, token)
 		if err != nil {
-			return nil, fmt.Errorf("ошибка получения баланса ERC20 токена: %v", err)
+			return nil, fmt.Errorf("failed get balance erc20 token: %v", err)
 		}
 		return erc20Balance, nil
 	}

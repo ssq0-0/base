@@ -27,7 +27,7 @@ func (ah AaveHandler) Execute(acc *account.Account, mods modules.Modules, client
 	case string(types.AaveUSDCWithdrawAction):
 		return ah.handleWithdrawSpecific(acc, client, mods)
 	default:
-		return fmt.Errorf("неизвестный тип действия: %s", ah.LiquidParams.Type)
+		return fmt.Errorf("uncknow action type: %s", ah.LiquidParams.Type)
 	}
 }
 

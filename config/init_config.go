@@ -1,10 +1,10 @@
 package config
 
 import (
+	"base/logger"
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 
@@ -92,96 +92,13 @@ type NFTConfig struct {
 func init() {
 	MaxUint256, _ = new(big.Int).SetString(MaxUint256Str, 10)
 
-	erc20JSON := []byte(`[
-		{
-			"constant":true,
-			"inputs":[{"name":"account","type":"address"}],
-			"name":"balanceOf",
-			"outputs":[{"name":"","type":"uint256"}],
-			"payable":false,
-			"stateMutability":"view",
-			"type":"function"
-		},
-		{
-			"constant":true,
-			"inputs":[{"name":"spender","type":"address"},{"name":"owner","type":"address"}],
-			"name":"allowance",
-			"outputs":[{"name":"","type":"uint256"}],
-			"payable":false,
-			"stateMutability":"view",
-			"type":"function"
-		},
-		{
-			"constant":false,
-			"inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],
-			"name":"approve",
-			"outputs":[{"name":"","type":"bool"}],
-			"payable":false,
-			"stateMutability":"nonpayable",
-			"type":"function"
-		},
-		{
-			"constant":false,
-			"inputs":[{"name":"recipient","type":"address"},{"name":"amount","type":"uint256"}],
-			"name":"transfer",
-			"outputs":[{"name":"","type":"bool"}],
-			"payable":false,
-			"stateMutability":"nonpayable",
-			"type":"function"
-		},
-		{
-			"constant":false,
-			"inputs":[{"name":"sender","type":"address"},{"name":"recipient","type":"address"},{"name":"amount","type":"uint256"}],
-			"name":"transferFrom",
-			"outputs":[{"name":"","type":"bool"}],
-			"payable":false,
-			"stateMutability":"nonpayable",
-			"type":"function"
-		},
-		{
-			"constant":true,
-			"inputs":[],
-			"name":"decimals",
-			"outputs":[{"name":"","type":"uint8"}],
-			"payable":false,
-			"stateMutability":"view",
-			"type":"function"
-		},
-		{
-			"constant":true,
-			"inputs":[],
-			"name":"name",
-			"outputs":[{"name":"","type":"string"}],
-			"payable":false,
-			"stateMutability":"view",
-			"type":"function"
-		},
-		{
-			"constant":true,
-			"inputs":[],
-			"name":"symbol",
-			"outputs":[{"name":"","type":"string"}],
-			"payable":false,
-			"stateMutability":"view",
-			"type":"function"
-		},
-		{
-			"constant":true,
-			"inputs":[],
-			"name":"totalSupply",
-			"outputs":[{"name":"","type":"uint256"}],
-			"payable":false,
-			"stateMutability":"view",
-			"type":"function"
-		}
-	]`)
-	parsedABI, err := abi.JSON(bytes.NewReader(erc20JSON))
+	parsedABI, err := abi.JSON(bytes.NewReader(Erc20JSON))
 	if err != nil {
-		log.Fatalf("Ошибка при парсинге ABI: %v", err)
+		logger.GlobalLogger.Fatalf("Ошибка при парсинге ABI: %v", err)
 	}
 
 	Erc20ABI = &parsedABI
-	log.Println("ABI успешно инициализировано.")
+
 }
 
 func LoadConfig(path string) (*Config, error) {

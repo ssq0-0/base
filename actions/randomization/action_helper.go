@@ -6,9 +6,10 @@ import (
 	"crypto/rand"
 	"errors"
 	"math/big"
+	"strings"
 )
 
-func getAvailableActions(cfg account.ModulesConfig) []types.ActionType {
+func getAvailableActions(cfg *account.ModulesConfig, wltcfg *account.WalletConfig) []types.ActionType {
 	actionMap := map[types.ActionType]bool{}
 	if cfg.Uniswap {
 		actionMap[types.UniswapAction] = true
@@ -25,9 +26,8 @@ func getAvailableActions(cfg account.ModulesConfig) []types.ActionType {
 	if cfg.NFT2Me {
 		actionMap[types.NFT2MeAction] = true
 	}
-	if cfg.BaseNames {
+	if cfg.BaseNames && (strings.TrimSpace(wltcfg.BaseName) != "") {
 		actionMap[types.BaseNameAction] = true
-
 	}
 	if cfg.Stargate {
 		actionMap[types.BridgeAction] = true
@@ -56,7 +56,7 @@ func getAvailableActions(cfg account.ModulesConfig) []types.ActionType {
 	return availableActionTypes
 }
 
-func getNumActions(walletCfg account.WalletConfig) (int, error) {
+func getNumActions(walletCfg *account.WalletConfig) (int, error) {
 	min := 15
 	if walletCfg.ActionNumMIN != nil {
 		min = *walletCfg.ActionNumMIN

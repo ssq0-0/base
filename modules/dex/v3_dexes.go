@@ -4,6 +4,7 @@ import (
 	"base/account"
 	"base/config"
 	"base/ethClient"
+	"base/models"
 	"base/utils"
 	"fmt"
 	"math/big"
@@ -72,7 +73,7 @@ func (v3 *V3Router) SwapToETH(fromToken, toToken common.Address, amountIn, value
 }
 
 func (v3 *V3Router) prepareSwapData(recipient, fromToken, toToken common.Address, amountIn *big.Int) ([]byte, *big.Int, error) {
-	amountMinOut, err := v3.GetQuoteSingle(fromToken, toToken, v3.Fee, amountIn)
+	amountMinOut, err := v3.getQuoteSingle(fromToken, toToken, v3.Fee, amountIn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error of receiving a quote: %w", err)
 	}
@@ -89,11 +90,33 @@ func (v3 *V3Router) prepareSwapData(recipient, fromToken, toToken common.Address
 	return data, amountMinOut, nil
 }
 
-func (v3 *V3Router) GetQuoteSingle(fromToken, toToken common.Address, feeOrTickSpacing, amountIn *big.Int) (*big.Int, error) {
+func (v3 *V3Router) getQuoteSingle(fromToken, toToken common.Address, feeOrTickSpacing, amountIn *big.Int) (*big.Int, error) {
 	data, err := v3.packQuoteData(fromToken, toToken, feeOrTickSpacing, amountIn, v3.QuoterABI)
 	if err != nil {
 		return nil, fmt.Errorf("failed pack data for quoteExactInputSingle: %w", err)
 	}
 
 	return getAmountMin(v3.QuoterCA, data, v3.Client, v3.QuoterABI, "quoteExactInputSingle", config.Slippage)
+}
+
+func (v3 *V3Router) packTxData(ownerAddr, fromToken, toToken common.Address, feeOrTickSpacing, amountIn, amountMinOut, sqrtPriceLimitX96 *big.Int, routerABI *abi.ABI) ([]byte, error) {
+	return routerABI.Pack("exactInputSingle", models.ExactInputSingleParams{
+		TokenIn:           fromToken,
+		TokenOut:          toToken,
+		Fee:               feeOrTickSpacing,
+		Recipient:         ownerAddr,
+		AmountIn:          amountIn,
+		AmountOutMinimum:  amountMinOut,
+		SqrtPriceLimitX96: sqrtPriceLimitX96,
+	})
+}
+
+func (v3 *V3Router) packQuoteData(fromToken, toToken common.Address, feeOrTickSpacing, amountIn *big.Int, quoterABI *abi.ABI) ([]byte, error) {
+	return quoterABI.Pack("quoteExactInputSingle", models.OtherDexParams{
+		TokenIn:           fromToken,
+		TokenOut:          toToken,
+		AmountIn:          amountIn,
+		Fee:               feeOrTickSpacing,
+		SqrtPriceLimitX96: big.NewInt(0),
+	})
 }

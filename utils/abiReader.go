@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"log"
+	"base/logger"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,13 +15,13 @@ func ReadAbi(relativePath string) (*abi.ABI, error) {
 
 	file, err := os.ReadFile(absolutePath)
 	if err != nil {
-		log.Printf("failed to read abi file: %v, path: %s", err, absolutePath)
+		logger.GlobalLogger.Errorf("failed to read abi file: %v, path: %s", err, absolutePath)
 		return nil, err
 	}
 
 	abi, err := abi.JSON(strings.NewReader(string(file)))
 	if err != nil {
-		log.Printf("failed decode abi: %v", err)
+		logger.GlobalLogger.Errorf("failed decode abi: %v", err)
 		return nil, err
 	}
 
