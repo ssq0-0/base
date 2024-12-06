@@ -13,5 +13,5 @@ type BridgeHandler struct {
 }
 
 func (bh BridgeHandler) Execute(acc *account.Account, mods modules.Modules, client *ethClient.Client, config *config.Config) error {
-	return mods.Bridge.SwapStable(bh.BridgeParams.FromChain, bh.BridgeParams.DstChain, bh.BridgeParams.SrcPoolId, bh.BridgeParams.DstPoolId, bh.BridgeParams.AmountToBridge, acc)
+	return mods.Bridge.SwapStable(bh.BridgeParams.FromChain, bh.BridgeParams.DstChain, bh.BridgeParams.Token, bh.BridgeParams.AmountToBridge, acc)
 }

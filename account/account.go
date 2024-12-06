@@ -11,11 +11,14 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
+	"golang.org/x/sync/errgroup"
 )
 
 type Account struct {
 	AccountID        int
 	Address          common.Address
+	Endpoint         common.Address
+	RevertAllowance  bool
 	PrivateKey       *ecdsa.PrivateKey
 	Bridge           string
 	BridgeChain      string
@@ -24,6 +27,7 @@ type Account struct {
 	UsedRange        int64
 	PoolUsedRange    int64
 	LastSwaps        []models.SwapPair
+	LastBridge       string
 	LastTokenDeposit common.Address
 	LastToken        common.Address
 	LastMint         []common.Address
@@ -35,41 +39,42 @@ type Account struct {
 	ActionTimeMAX    int
 }
 
-func NewAccount(accountID int, privateKey *ecdsa.PrivateKey, address common.Address, baseName string, usedRange, poolUsedRange int64, bridge, tokenBridge string, actionNumMin, actionNumMax, actionTimeMIN, actionTimeMAX int) *Account {
+func NewAccount(accountID int, privateKey *ecdsa.PrivateKey, address common.Address, endpoint, baseName string, revert bool, usedRange, poolUsedRange int64, bridge, tokenBridge string, actionNumMin, actionNumMax, actionTimeMIN, actionTimeMAX int) *Account {
 	return &Account{
-		AccountID:      accountID,
-		PrivateKey:     privateKey,
-		Bridge:         bridge,
-		TokenBridge:    tokenBridge,
-		BaseName:       baseName,
-		Address:        address,
-		UsedRange:      usedRange,
-		PoolUsedRange:  poolUsedRange,
-		LastMint:       []common.Address{},
-		LastPoolAction: []string{},
-		ActionNumMin:   actionNumMin,
-		ActionNumMax:   actionNumMax,
-		ActionTimeMIN:  actionTimeMIN,
-		ActionTimeMAX:  actionTimeMAX,
+		AccountID:       accountID,
+		PrivateKey:      privateKey,
+		RevertAllowance: revert,
+		Bridge:          bridge,
+		TokenBridge:     tokenBridge,
+		BaseName:        baseName,
+		Address:         address,
+		Endpoint:        common.HexToAddress(endpoint),
+		UsedRange:       usedRange,
+		PoolUsedRange:   poolUsedRange,
+		LastMint:        []common.Address{},
+		LastPoolAction:  []string{},
+		ActionNumMin:    actionNumMin,
+		ActionNumMax:    actionNumMax,
+		ActionTimeMIN:   actionTimeMIN,
+		ActionTimeMAX:   actionTimeMAX,
 	}
 }
 
 func CreateAccounts(walletConfigs []WalletConfig) ([]*Account, error) {
 	var (
-		accounts  []*Account
-		wg        sync.WaitGroup
-		accountCh = make(chan *Account)
-		errorCh   = make(chan error)
+		accounts     []*Account
+		accountsLock sync.Mutex
 	)
 
-	for idx, wc := range walletConfigs {
-		wg.Add(1)
-		go func(idx int, wc WalletConfig) {
-			defer wg.Done()
+	g := new(errgroup.Group)
 
+	for idx, wc := range walletConfigs {
+		idx := idx
+		wc := wc
+		g.Go(func() error {
 			privateKey, err := utils.ParsePrivateKey(wc.PrivateKey)
 			if err != nil {
-				errorCh <- fmt.Errorf("ошибка парсинга приватного ключа для кошелька %d: %v", idx+1, err)
+				return fmt.Errorf("ошибка парсинга приватного ключа для кошелька %d: %v", idx+1, err)
 			}
 
 			address := utils.DeriveAddress(privateKey)
@@ -93,7 +98,9 @@ func CreateAccounts(walletConfigs []WalletConfig) ([]*Account, error) {
 				idx+1,
 				privateKey,
 				address,
+				wc.Endpoint,
 				wc.BaseName,
+				wc.RevertAllowance,
 				wc.UsedRange,
 				wc.PoolUsedRange,
 				wc.Bridge,
@@ -104,35 +111,20 @@ func CreateAccounts(walletConfigs []WalletConfig) ([]*Account, error) {
 				*wc.ActionTimeMAX,
 			)
 
-			accountCh <- account
+			accountsLock.Lock()
+			accounts = append(accounts, account)
+			accountsLock.Unlock()
 
-		}(idx, wc)
+			return nil
+		})
 	}
 
-	go func() {
-		wg.Wait()
-		close(accountCh)
-		close(errorCh)
-	}()
+	if err := g.Wait(); err != nil {
+		logger.GlobalLogger.Error(err)
+	}
 
-	for {
-		select {
-		case acc, ok := <-accountCh:
-			if !ok {
-				accountCh = nil
-			} else {
-				accounts = append(accounts, acc)
-			}
-		case err, ok := <-errorCh:
-			if !ok {
-				errorCh = nil
-			} else {
-				logger.GlobalLogger.Error(err)
-			}
-		}
-		if accountCh == nil && errorCh == nil {
-			break
-		}
+	if len(accounts) == 0 {
+		return nil, fmt.Errorf("нет созданных аккаунтов. Проверьте приватные ключи в конфигурации")
 	}
 
 	return accounts, nil

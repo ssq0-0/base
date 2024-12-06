@@ -3,7 +3,6 @@ package nftmints
 import (
 	"base/account"
 	"base/ethClient"
-	"base/utils"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -16,14 +15,9 @@ type Zora struct {
 	Client *ethClient.Client
 }
 
-func NewZora(client *ethClient.Client, ca, abiPath string) (*Zora, error) {
-	abi, err := utils.ReadAbi(abiPath)
-	if err != nil {
-		return nil, err
-	}
-
+func NewZora(client *ethClient.Client, ca common.Address, abi *abi.ABI) (*Zora, error) {
 	return &Zora{
-		CA:     common.HexToAddress(ca),
+		CA:     ca,
 		ABI:    abi,
 		Client: client,
 	}, nil

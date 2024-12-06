@@ -25,9 +25,14 @@ type DexParams struct {
 }
 type BridgeParams struct {
 	FromChain      string
-	DstChain       uint16
-	SrcPoolId      *big.Int // Используется для Stargate
-	DstPoolId      *big.Int // Используется для Stargate
+	DstChain       string
+	Token          string
+	AmountToBridge *big.Int
+}
+
+type RefuelParams struct {
+	DstChain       string
+	ScrChain       string
 	AmountToBridge *big.Int
 }
 
@@ -45,6 +50,7 @@ const (
 	NFT2MeAction           ActionType = "nft2me"
 	BaseNameAction         ActionType = "basenames"
 	DmailAction            ActionType = "dmail"
+	RefuelAction           ActionType = "refuel"
 	AaveETHDepositAction   ActionType = "aave_deposit"
 	AaveETHWithdrawAction  ActionType = "aave_withdraw"
 	AaveUSDCSupplyAction   ActionType = "aave_supply"

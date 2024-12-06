@@ -4,7 +4,6 @@ import (
 	"base/account"
 	"base/config"
 	"base/ethClient"
-	"base/utils"
 	"fmt"
 	"math/big"
 
@@ -19,15 +18,10 @@ type Aave struct {
 	Client    *ethClient.Client
 }
 
-func NewAave(client *ethClient.Client, proxy_base, ethPoolCa, abiPath string) (*Aave, error) {
-	abi, err := utils.ReadAbi(abiPath)
-	if err != nil {
-		return nil, err
-	}
-
+func NewAave(client *ethClient.Client, proxy_base, ethPoolCa common.Address, abi *abi.ABI) (*Aave, error) {
 	return &Aave{
-		ProxyBase: common.HexToAddress(proxy_base),
-		EthPool:   common.HexToAddress(ethPoolCa),
+		ProxyBase: proxy_base,
+		EthPool:   ethPoolCa,
 		Client:    client,
 		ABI:       abi,
 	}, nil

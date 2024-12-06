@@ -5,7 +5,6 @@ import (
 	"base/config"
 	"base/ethClient"
 	"base/models"
-	"base/utils"
 	"fmt"
 	"math/big"
 
@@ -23,21 +22,12 @@ type V3Router struct {
 	SqrtPriceLimitX96 *big.Int
 }
 
-func NewV3Router(client *ethClient.Client, RouterCA, QuoterCA, RouterABIPath, QuoterABIPath string, fee, sqrtPriceLimitX96 *big.Int) (*V3Router, error) {
-	routerABI, err := utils.ReadAbi(RouterABIPath)
-	if err != nil {
-		return nil, err
-	}
-	quoterABI, err := utils.ReadAbi(QuoterABIPath)
-	if err != nil {
-		return nil, err
-	}
-
+func NewV3Router(client *ethClient.Client, RouterCA, QuoterCA common.Address, routerABI, quoterABI *abi.ABI, fee, sqrtPriceLimitX96 *big.Int) (*V3Router, error) {
 	return &V3Router{
 		RouterABI:         routerABI,
 		QuoterABI:         quoterABI,
-		RouterCA:          common.HexToAddress(RouterCA),
-		QuoterCA:          common.HexToAddress(QuoterCA),
+		RouterCA:          RouterCA,
+		QuoterCA:          QuoterCA,
 		Client:            client,
 		Fee:               fee,
 		SqrtPriceLimitX96: sqrtPriceLimitX96,

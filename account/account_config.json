@@ -1,6 +1,8 @@
 {
     "_example_wallet_config":{
         "private_key":"privateKey1",
+        "endpoint":"по желанию. Указать адрес кошелька, на который нужно будет отправить все средства после работы коллектора(по окончанию отработки софта)",
+        "revert_allowance":"указать true(нужно)/false(не нужно) откатывать апрувы при работе коллектора",
         "base_name":"поместите здесь имя для вашего BaseName. Формат - 'examplebasename'. Без '.base.eth'",
         "used_range":"здесь должно быть целое число. Это процент от баланса, который используется в процессе работы.",
         "used_range_in_pools":"тоже самое, что и выше, но для пулов ликвидности. Рекомендация - максимум 20-30.",
@@ -14,25 +16,28 @@
     "wallets":[
         {
             "private_key":"",
+            "endpoint":"",
+            "revert_allowance":false,
             "base_name":"",
             "used_range":85,
             "used_range_in_pools":11,
             "bridge":"",
             "token":"",
-            "action_num_min":20,
-            "action_num_max":33,
-            "action_time_window_MIN":45,
-            "action_time_window_MAX":65
+            "action_num_min":25,
+            "action_num_max":38,
+            "action_time_window_MIN":10,
+            "action_time_window_MAX":11
         }
     ],
     "modules":{
         "uniswap":true,
-        "pancake":true,
-        "woofi":true,
-        "dmail":true,
+        "pancake":false,
+        "woofi":false,
+        "refuel":false,
+        "dmail":false,
         "zora":false,
         "nft2me":false,
-        "aave":true,
+        "aave":false,
         "moonwell":false,
         "basenames": false,
         "collector_mod":false

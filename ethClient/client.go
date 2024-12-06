@@ -218,6 +218,19 @@ func (c *Client) Allowance(tokenAddr, owner, spender common.Address) (*big.Int, 
 	return allowance, nil
 }
 
+func (c *Client) SendNativeToken(privateKey *ecdsa.PrivateKey, from, to common.Address, amount *big.Int) error {
+	return c.SendTransaction(privateKey, from, to, c.GetNonce(from), amount, nil)
+}
+
+func (c *Client) SendERC20Token(privateKey *ecdsa.PrivateKey, tokenAddress, from, to common.Address, amount *big.Int) error {
+	transferData, err := config.Erc20ABI.Pack("transfer", to, amount)
+	if err != nil {
+		return fmt.Errorf("failed to pack transfer data: %v", err)
+	}
+
+	return c.SendTransaction(privateKey, from, tokenAddress, c.GetNonce(from), big.NewInt(0), transferData)
+}
+
 func (c *Client) SendTransaction(privateKey *ecdsa.PrivateKey, ownerAddr, CA common.Address, nonce uint64, value *big.Int, txData []byte) error {
 	chainID, err := c.Client.NetworkID(context.Background())
 	if err != nil {
@@ -274,7 +287,7 @@ func (c *Client) waitForTransactionSuccess(txHash common.Hash, timeout time.Dura
 			receipt, err := c.Client.TransactionReceipt(context.Background(), txHash)
 			if err != nil {
 				if err.Error() == "not found" {
-					log.Printf("Transaction %s not yet found in the blockchain, retrying...", txHash.Hex())
+					logger.GlobalLogger.Infof("Transaction %s not yet found in the blockchain, retrying...", txHash.Hex())
 					continue
 				}
 				return fmt.Errorf("error getting transaction receipt: %v", err)

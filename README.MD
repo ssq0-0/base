@@ -16,7 +16,7 @@ The software is a multi-module programme designed for automated operations in th
 - **Moonwell:** Liquidity pool management on Moonwell.
 - **BaseNames:** Domain minting for BASE blockchain.
 - **Collector:** Token collection and aggregation.
-- **Refuel:** (Coming soon) Refueling ETH across networks.
+- **Refuel:** Automatically tops up ETH when topping up on a network and dynamically tops up ETH from another network if ETH unexpectedly runs out.
 - **Memory:** Tracks and adapts operations dynamically.
 
 *(More features coming soon!)*
@@ -50,6 +50,15 @@ go build -o base ./app/main.go
 ```bash
 make run
 ```
+4. Or use docker: 
+```bash
+docker build -t base:latest .
+
+docker run --rm \                                                                            
+  -v $(pwd)/account/account_config.json:/base/account/account_config.json \
+  -v $(pwd)/app/process/state.json:/base/app/process/state.json \
+  base:latest
+```
 
 ## Configuration Guide
 
@@ -62,10 +71,12 @@ The configuration file (`config.json`) is essential for customizing the behavior
 This section defines the wallets used by the software. Each wallet is described by the following fields:
 
 - **`private_key`**: The private key of your wallet. Required for signing transactions.
+- **`endpoint`**: The address to which all funds will be transferred at the end of the collector module.
+- **`revert_allowance`**: Rollback of approves(true/false).
 - **`base_name`**: (Optional) If you need to mint a domain on BASE, specify the domain name here. For the cheapest options, use names with 10 or more characters.
 - **`used_range`**: The percentage of your balance to be used for swaps. For example, with a balance of $100 and `used_range` set to 70, $70 will be used for each swap. It is not recommended to set this value above 90%.
 - **`used_range_in_pools`**: Similar to `used_range`, but for liquidity pools (Aave & Moonwell). Recommended value is no more than 30% when combining multiple modules.
-- **`bridge`**: If bridging is required, specify the target network (e.g., `optimism`, `arbitrum`). Ensure your account has sufficient ETH in the BASE network to cover gas fees.
+- **`bridge`**: If bridging is required, specify the target network (e.g., `optimism`, `arbitrum`). 
 - **`token`**: The token to be bridged (e.g., `usdt`, `usdc`). Note: Bridging uses Stargate, and the resulting token in the BASE network will be `usdbc`.
 - **`action_num_min` / `action_num_max`**: Minimum and maximum number of actions to be performed. A random number within this range will be chosen.
 - **`action_time_window_min` / `action_time_window_max`**: Minimum and maximum delay between actions, in minutes.
@@ -85,6 +96,7 @@ Example:
   "uniswap": true,
   "pancake": false,
   "woofi": false,
+  "refuel":false,
   "dmail": false,
   "zora": true,
   "nft2me": false,
@@ -109,7 +121,7 @@ The `nft_ca` section defines which NFT contracts will be used for minting operat
 
 - **`zora`**: 
   - Specify contracts for Zora.
-  - Provide the minting price in Sparks (Zora's internal currency). Note that the software does not currently support a Sparks-to-ETH calculator, so the price must be calculated manually.
+  - Provide the minting price in Sparks (Zora's internal currency). 
 
 ---
 
@@ -122,8 +134,8 @@ The `nft_ca` section defines which NFT contracts will be used for minting operat
     "0xContractAddress2": "0.0002"
   },
   "zora": {
-    "0xContractAddress3": "0.000051",
-    "0xContractAddress4": "0.000042"
+    "0xContractAddress3": "118.98",
+    "0xContractAddress4": "78.9"
   }
 }
 ```
@@ -141,7 +153,7 @@ The `nft_ca` section defines which NFT contracts will be used for minting operat
    - For free NFTs, always specify `0.0002` as the price to cover gas fees.
 
 4. **Zora Pricing**:
-   - Zora uses Sparks as its currency. Calculate the equivalent ETH price manually before adding it to the configuration. A calculator for Sparks conversion will be available in future updates.
+   - Zora uses Sparks as its currency.
 
 ---
 
@@ -154,6 +166,8 @@ Here is a complete example of the `config.json` file, incorporating all wallet, 
   "wallets": [
     {
       "private_key": "your_private_key_here",
+      "endpoint":"you_destination_address",
+      "revert_allowance":true,
       "base_name": "example-domain",
       "used_range": 70,
       "used_range_in_pools": 25,
@@ -169,6 +183,7 @@ Here is a complete example of the `config.json` file, incorporating all wallet, 
     "uniswap": true,
     "pancake": false,
     "woofi": false,
+    "refuel":false,
     "dmail": false,
     "zora": true,
     "nft2me": true,
@@ -183,8 +198,8 @@ Here is a complete example of the `config.json` file, incorporating all wallet, 
       "0xContractAddress2": "0.0002"
     },
     "zora": {
-      "0xContractAddress3": "0.000051",
-      "0xContractAddress4": "0.000042"
+      "0xContractAddress3": "150.0",
+      "0xContractAddress4": "101.2"
     }
   }
 }

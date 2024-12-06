@@ -27,11 +27,32 @@
         "sqrtPriceLimitX96": 0
     },
     "bridge": {
-        "swap_ca": "0xB0D502E938ed5f4df2E681fE6E419ff29631d62b",
-        "eth_router":"0xB49c4e680174E331CB0A7fF3Ab58afC9738d5F8b",
-        "fee_ca": "0x701a95707A0290AC8B90b3719e8EE5b210360883",
+        "swap_ca":{
+            "ethereum":"0x8731d54E9D02c286767d56ac03e8037C07e01e98",
+            "arbitrum":"0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614",
+            "avalanche":"0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",
+            "polygon":"0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",
+            "_base":"",
+            "bsc": "0x4a364f8c717cAAD9A442737Eb7b8A55cc6cf18D8"
+        },
+        "fee_ca":{
+            "ethereum":"0x296F55F8Fb28E498B858d0BcDA06D955B2Cb3f97",
+            "arbitrum":"0x352d8275AAE3e0c2404d9f68f6cEE084B5bEB3DD",
+            "avalanche":"0x9d1B1669c73b033DFe47ae5a0164Ab96df25B944",
+            "polygon":"0x9d1B1669c73b033DFe47ae5a0164Ab96df25B944",
+            "_base":"",
+            "bsc": "0x6694340fc020c5E6B96567843da2df01b2CE1eb6"
+        },
         "swap_abi_path": "modules/abis/stargate.json",
         "fee_abi_path": "modules/abis/stargate_fee.json"
+    },
+    "refuel":{
+        "api_path":"modules/abis/socket_refuel.json",
+        "optimism_socket":"0x5800249621DA520aDFdCa16da20d8A5Fc0f814d8",
+        "arbirum_socket":"0xc0E02AA55d10e38855e13B64A8E1387A04681A00",
+        "avalanche_socket":"0x040993fbF458b95871Cd2D73Ee2E09F4AF6d56bB",
+        "polygon_socket":"0xAC313d7491910516E06FBfC2A0b5BB49bb072D91",
+        "base_socket":"0xE8c5b8488FeaFB5df316Be73EdE3Bdc26571a773"
     },
     "dmail": {
         "ca": "0x47fbe95e981C0Df9737B6971B451fB15fdC989d9",

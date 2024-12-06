@@ -4,7 +4,6 @@ import (
 	"base/account"
 	"base/config"
 	"base/ethClient"
-	"base/utils"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -17,15 +16,10 @@ type WooFi struct {
 	CA     common.Address
 }
 
-func NewWooFi(client *ethClient.Client, ca, abiPath string) (*WooFi, error) {
-	abi, err := utils.ReadAbi(abiPath)
-	if err != nil {
-		return nil, err
-	}
-
+func NewWooFi(client *ethClient.Client, ca common.Address, abi *abi.ABI) (*WooFi, error) {
 	return &WooFi{
 		ABI:    abi,
-		CA:     common.HexToAddress(ca),
+		CA:     ca,
 		Client: client,
 	}, nil
 }

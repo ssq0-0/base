@@ -1,0 +1,14 @@
+.git
+.gitignore
+
+Dockerfile
+Dockerfile.*
+*.md
+*.log
+
+account/account_config.json
+
+tmp/
+*.tmp
+
+app/process/state.json

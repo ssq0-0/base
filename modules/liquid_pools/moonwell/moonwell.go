@@ -4,7 +4,6 @@ import (
 	"base/account"
 	"base/config"
 	"base/ethClient"
-	"base/utils"
 	"fmt"
 	"math/big"
 
@@ -21,19 +20,10 @@ type Moonwell struct {
 	Client        *ethClient.Client
 }
 
-func NewMoonwell(client *ethClient.Client, wethRouter, methca, abiPath, mwETHAbiPath string) (*Moonwell, error) {
-	abi, err := utils.ReadAbi(abiPath)
-	if err != nil {
-		return nil, err
-	}
-
-	mwETHAbi, err := utils.ReadAbi(mwETHAbiPath)
-	if err != nil {
-		return nil, err
-	}
+func NewMoonwell(client *ethClient.Client, wethRouter, methca common.Address, abi, mwETHAbi *abi.ABI) (*Moonwell, error) {
 	return &Moonwell{
-		WethRouter:    common.HexToAddress(wethRouter),
-		MoonwellEthCA: common.HexToAddress(methca),
+		WethRouter:    wethRouter,
+		MoonwellEthCA: methca,
 		ABI:           abi,
 		MWethAbi:      mwETHAbi,
 		Client:        client,

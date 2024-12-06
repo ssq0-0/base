@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	"strings"
 	"sync"
+	"time"
 
 	"base/account"
 	"base/actions"
@@ -40,7 +42,7 @@ func (r *Randomizer) GenerateActionSequence(modules *account.ModulesConfig, wall
 		numActions = 10
 	}
 
-	availableActionTypes := getAvailableActions(modules, walletConfig)
+	availableActionTypes := r.getAvailableActions(modules, walletConfig)
 	if len(availableActionTypes) == 0 {
 		return nil, errors.New("no action types available for generation")
 	}
@@ -81,7 +83,55 @@ func (r *Randomizer) GenerateActionSequence(modules *account.ModulesConfig, wall
 
 	return actionsList, nil
 }
+func (r *Randomizer) getAvailableActions(cfg *account.ModulesConfig, wltcfg *account.WalletConfig) []types.ActionType {
+	actionMap := map[types.ActionType]bool{}
+	if cfg.Uniswap {
+		actionMap[types.UniswapAction] = true
+	}
+	if cfg.Pancake {
+		actionMap[types.PancakeAction] = true
+	}
+	if cfg.Woofi {
+		actionMap[types.WoofiAction] = true
+	}
+	if cfg.Refuel {
+		actionMap[types.RefuelAction] = true
+	}
+	if cfg.Zora {
+		actionMap[types.ZoraAction] = true
+	}
+	if cfg.NFT2Me {
+		actionMap[types.NFT2MeAction] = true
+	}
+	if cfg.BaseNames && (strings.TrimSpace(wltcfg.BaseName) != "") {
+		actionMap[types.BaseNameAction] = true
+	}
+	if cfg.Stargate {
+		actionMap[types.BridgeAction] = true
+	}
+	if cfg.Dmail {
+		actionMap[types.DmailAction] = true
+	}
+	if cfg.Aave {
+		actionMap[types.AaveETHDepositAction] = true
+		actionMap[types.AaveETHWithdrawAction] = true
+		actionMap[types.AaveUSDCSupplyAction] = true
+		actionMap[types.AaveUSDCWithdrawAction] = true
+	}
+	if cfg.Moonwell {
+		actionMap[types.MoonwellDepositAction] = true
+		actionMap[types.MoonwellWithdrawAction] = true
+	}
+	if cfg.Collector {
+		actionMap[types.CollectorModAction] = true
+	}
 
+	availableActionTypes := make([]types.ActionType, 0, len(actionMap))
+	for action := range actionMap {
+		availableActionTypes = append(availableActionTypes, action)
+	}
+	return availableActionTypes
+}
 func (r *Randomizer) GenerateSingleAction(actionType types.ActionType, acc *account.Account) (actions.Action, error) {
 	switch actionType {
 	case types.UniswapAction, types.PancakeAction, types.WoofiAction:
@@ -91,6 +141,8 @@ func (r *Randomizer) GenerateSingleAction(actionType types.ActionType, acc *acco
 	case types.AaveETHDepositAction, types.AaveETHWithdrawAction, types.AaveUSDCSupplyAction,
 		types.AaveUSDCWithdrawAction, types.MoonwellDepositAction, types.MoonwellWithdrawAction:
 		return r.generatePoolAction(actionType, acc)
+	case types.RefuelAction:
+		return r.generateRefuelActions(actionType, acc)
 	case types.BridgeAction, types.DmailAction, types.CollectorModAction:
 		return actions.Action{Type: actionType}, nil
 	case types.BaseNameAction:
@@ -122,6 +174,28 @@ func (r *Randomizer) generateNFTAction(actionType types.ActionType) (actions.Act
 		NftMintParams: types.NftMintParams{
 			MintCA: selectedContract,
 			Price:  price,
+		},
+	}, nil
+}
+
+func (r *Randomizer) generateRefuelActions(actionType types.ActionType, acc *account.Account) (actions.Action, error) {
+	availableChains := []string{"arbitrum", "optimism", "polygon", "avalanche"}
+
+	var dstChain string
+	randomGen := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for {
+		dstChain = availableChains[randomGen.Intn(len(availableChains))]
+		if dstChain != acc.LastBridge {
+			break
+		}
+	}
+
+	acc.LastBridge = dstChain
+	return actions.Action{
+		Type: actionType,
+		RefuelParams: types.RefuelParams{
+			DstChain: dstChain,
+			ScrChain: "base",
 		},
 	}, nil
 }

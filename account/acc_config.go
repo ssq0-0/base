@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -16,17 +17,19 @@ type RandomConfig struct {
 }
 
 type WalletConfig struct {
-	PrivateKey    string `json:"private_key"`
-	BaseName      string `json:"base_name"`
-	NameUsed      bool
-	UsedRange     int64  `json:"used_range"`
-	PoolUsedRange int64  `json:"used_range_in_pools"`
-	Bridge        string `json:"bridge"`
-	Token         string `json:"token"`
-	ActionNumMIN  *int   `json:"action_num_min"`
-	ActionNumMAX  *int   `json:"action_num_max"`
-	ActionTimeMIN *int   `json:"action_time_window_MIN"`
-	ActionTimeMAX *int   `json:"action_time_window_MAX"`
+	PrivateKey      string `json:"private_key"`
+	Endpoint        string `json:"endpoint"`
+	RevertAllowance bool   `json:"revert_allowance"`
+	BaseName        string `json:"base_name"`
+	NameUsed        bool
+	UsedRange       int64  `json:"used_range"`
+	PoolUsedRange   int64  `json:"used_range_in_pools"`
+	Bridge          string `json:"bridge"`
+	Token           string `json:"token"`
+	ActionNumMIN    *int   `json:"action_num_min"`
+	ActionNumMAX    *int   `json:"action_num_max"`
+	ActionTimeMIN   *int   `json:"action_time_window_MIN"`
+	ActionTimeMAX   *int   `json:"action_time_window_MAX"`
 }
 
 type NFTCategories struct {
@@ -38,6 +41,7 @@ type ModulesConfig struct {
 	Uniswap   bool `json:"uniswap"`
 	Pancake   bool `json:"pancake"`
 	Woofi     bool `json:"woofi"`
+	Refuel    bool `json:"refuel"`
 	Zora      bool `json:"zora"`
 	NFT2Me    bool `json:"nft2me"`
 	BaseNames bool `json:"basenames"`
@@ -78,19 +82,38 @@ func InitializeAvailableNFTs(accConfig *RandomConfig) map[string]map[common.Addr
 func processNFTCategory(protocolName string, contracts map[string]string, availableNFTs map[string]map[common.Address]*big.Int) {
 	availableNFTs[protocolName] = make(map[common.Address]*big.Int)
 
+	isZora := strings.ToLower(protocolName) == "zora"
+
 	for addrStr, priceStr := range contracts {
 		priceFloat, ok := new(big.Float).SetString(priceStr)
 		if !ok {
-			log.Printf("Ошибка преобразования строки в float для %s контракта %s: %s", protocolName, addrStr, priceFloat)
+			log.Printf("Ошибка преобразования строки в float для %s контракта %s: %s", protocolName, addrStr, priceStr)
 			continue
 		}
 
-		weiMultiplier := new(big.Float).SetFloat64(1e18)
-		weiFloat := new(big.Float).Mul(priceFloat, weiMultiplier)
+		var priceInWei *big.Int
+		if isZora {
+			sparks := new(big.Int)
+			priceFloat.Int(sparks)
+			priceInWei = sparksToEth(sparks)
+		} else {
+			weiMultiplier := new(big.Float).SetFloat64(1e18)
+			weiFloat := new(big.Float).Mul(priceFloat, weiMultiplier)
+			priceInWei = new(big.Int)
+			weiFloat.Int(priceInWei)
+		}
 
-		price := new(big.Int)
-		weiFloat.Int(price)
-
-		availableNFTs[protocolName][common.HexToAddress(addrStr)] = price
+		availableNFTs[protocolName][common.HexToAddress(addrStr)] = priceInWei
 	}
+}
+
+func sparksToEth(sparks *big.Int) *big.Int {
+	ethFloat := new(big.Float).SetInt(sparks)
+	ethFloat.Mul(ethFloat, big.NewFloat(1e-6))
+
+	weiFloat := new(big.Float).Mul(ethFloat, big.NewFloat(1e18))
+
+	weiInt, _ := weiFloat.Int(nil)
+
+	return weiInt
 }

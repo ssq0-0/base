@@ -9,17 +9,18 @@ import (
 
 var (
 	RPCs = map[string]string{
-		"eth":       "https://eth.llamarpc.com",
+		"eth":       "https://eth.drpc.org",
 		"base":      "https://mainnet.base.org",
-		"arbitrum":  "https://arb1.arbitrum.io/rpc",
+		"arbitrum":  "https://arbitrum.drpc.org",
 		"optimism":  "https://rpc.ankr.com/optimism",
-		"polygon":   "https://polygon.llamarpc.com",
+		"polygon":   "https://polygon.drpc.org",
 		"avalanche": "https://avalanche.drpc.org",
 	}
 )
 
 var (
-	Slippage = big.NewFloat(0.98) // 2% проскальзывания
+	Slippage   = big.NewFloat(0.98) // 2% проскальзывания
+	MinBalance = big.NewInt(1e15)
 )
 
 const MaxUint256Str = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
@@ -63,9 +64,10 @@ var TokenDecimals = map[common.Address]uint8{
 	WooFiETH:     18,
 	AaveWETH:     18,
 	MoonwellWETH: 18,
-	AaveUSDC:     6,
-	USDC:         6,
-	USDbC:        6,
+
+	AaveUSDC: 6,
+	USDC:     6,
+	USDbC:    6,
 }
 
 var TokenPrice = map[common.Address]*big.Float{
@@ -119,47 +121,6 @@ var (
 )
 
 var (
-	LZ_Chain_ids = map[string]uint16{
-		"Ethereum":  101,
-		"BNB":       102,
-		"Avalanche": 106,
-		"Polygon":   109,
-		"Arbitrum":  110,
-		"Optimism":  111,
-		"Fantom":    112,
-		"Metis":     151,
-		"Base":      184,
-		"Linea":     183,
-		"Kava":      177,
-		"Mantle":    181,
-	}
-
-	LZ_Pool_ids = map[string]*big.Int{
-		"eth_usdc": big.NewInt(1),
-		"eth_usdt": big.NewInt(2),
-		"eth_dai":  big.NewInt(3),
-		"eth_eth":  big.NewInt(13),
-
-		"bsc_usdt": big.NewInt(2),
-
-		"avalanche_usdc": big.NewInt(1),
-		"avalanche_usdt": big.NewInt(2),
-
-		"polygon_usdc": big.NewInt(1),
-		"polygon_usdt": big.NewInt(2),
-
-		"arbitrum_usdc": big.NewInt(1),
-		"arbitrum_usdt": big.NewInt(2),
-		"arbitrum_eth":  big.NewInt(13),
-
-		"optimism_usdc": big.NewInt(1),
-		"optimism_dai":  big.NewInt(3),
-		"optimism_eth":  big.NewInt(13),
-
-		"base_usdc": big.NewInt(1),
-		"base_eth":  big.NewInt(13),
-	}
-
 	LZ_Main_CA = map[string]map[string]common.Address{
 		"ethereum": {
 			"swap_ca": common.HexToAddress("0x8731d54E9D02c286767d56ac03e8037C07e01e98"),

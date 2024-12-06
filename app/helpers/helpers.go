@@ -3,11 +3,8 @@ package helpers
 import (
 	"base/actions"
 	"base/actions/types"
-	"base/utils"
 	"fmt"
 	"math/rand"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -23,6 +20,14 @@ func FormatActionSequence(actionSequence []actions.Action, intervals []time.Dura
 				"\n\tFrom Token: %s\n\tTo Token: %s",
 				action.DexParams.FromToken.Hex(),
 				action.DexParams.ToToken.Hex(),
+			))
+		}
+
+		if action.RefuelParams != (types.RefuelParams{}) {
+			builder.WriteString(fmt.Sprintf(
+				"\n\tFrom chain: %s\n\tTo chain: %s",
+				action.RefuelParams.ScrChain,
+				action.RefuelParams.DstChain,
 			))
 		}
 
@@ -63,29 +68,4 @@ func DistributeActionsOverDuration(numActions int, totalDuration time.Duration) 
 	}
 
 	return intervals
-}
-
-func AllPathInit() (string, string, string, error) {
-	rootDir := utils.GetRootDir()
-
-	accConfigPath := filepath.Join(rootDir, "account", "account_config.json")
-	if _, err := os.Stat(accConfigPath); os.IsNotExist(err) {
-		return "", "", "", fmt.Errorf("файл не найден: %s", accConfigPath)
-	}
-
-	configPath := filepath.Join(rootDir, "config", "config.json")
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		return "", "", "", fmt.Errorf("файл не найден: %s", configPath)
-	}
-
-	stateFilePath := filepath.Join(rootDir, "app", "process", "state.json")
-	if _, err := os.Stat(stateFilePath); os.IsNotExist(err) {
-		file, err := os.Create(stateFilePath)
-		if err != nil {
-			return "", "", "", fmt.Errorf("не удалось создать файл состояния: %v", err)
-		}
-		defer file.Close()
-	}
-
-	return accConfigPath, configPath, stateFilePath, nil
 }

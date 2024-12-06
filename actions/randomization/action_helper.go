@@ -6,55 +6,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"math/big"
-	"strings"
 )
-
-func getAvailableActions(cfg *account.ModulesConfig, wltcfg *account.WalletConfig) []types.ActionType {
-	actionMap := map[types.ActionType]bool{}
-	if cfg.Uniswap {
-		actionMap[types.UniswapAction] = true
-	}
-	if cfg.Pancake {
-		actionMap[types.PancakeAction] = true
-	}
-	if cfg.Woofi {
-		actionMap[types.WoofiAction] = true
-	}
-	if cfg.Zora {
-		actionMap[types.ZoraAction] = true
-	}
-	if cfg.NFT2Me {
-		actionMap[types.NFT2MeAction] = true
-	}
-	if cfg.BaseNames && (strings.TrimSpace(wltcfg.BaseName) != "") {
-		actionMap[types.BaseNameAction] = true
-	}
-	if cfg.Stargate {
-		actionMap[types.BridgeAction] = true
-	}
-	if cfg.Dmail {
-		actionMap[types.DmailAction] = true
-	}
-	if cfg.Aave {
-		actionMap[types.AaveETHDepositAction] = true
-		actionMap[types.AaveETHWithdrawAction] = true
-		actionMap[types.AaveUSDCSupplyAction] = true
-		actionMap[types.AaveUSDCWithdrawAction] = true
-	}
-	if cfg.Moonwell {
-		actionMap[types.MoonwellDepositAction] = true
-		actionMap[types.MoonwellWithdrawAction] = true
-	}
-	if cfg.Collector {
-		actionMap[types.CollectorModAction] = true
-	}
-
-	availableActionTypes := make([]types.ActionType, 0, len(actionMap))
-	for action := range actionMap {
-		availableActionTypes = append(availableActionTypes, action)
-	}
-	return availableActionTypes
-}
 
 func getNumActions(walletCfg *account.WalletConfig) (int, error) {
 	min := 15

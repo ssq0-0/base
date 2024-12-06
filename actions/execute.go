@@ -15,6 +15,7 @@ type Action struct {
 	DexParams     types.DexParams
 	NftMintParams types.NftMintParams
 	BridgeParams  types.BridgeParams
+	RefuelParams  types.RefuelParams
 	LiquidParams  types.LiquidParams
 	BSNParams     types.BSNParams
 }
@@ -61,6 +62,10 @@ func GetActionHandler(action Action) (handlers.ActionHandler, error) {
 		return handlers.DmailHandler{}, nil
 	case types.CollectorModAction:
 		return &handlers.CollectorHandler{}, nil
+	case types.RefuelAction:
+		return &handlers.RefuelHandler{
+			RefuelParams: action.RefuelParams,
+		}, nil
 	default:
 		return nil, errors.New("неизвестный тип действия")
 	}

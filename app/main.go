@@ -21,30 +21,16 @@ func init() {
 }
 
 func main() {
-	logger.GlobalLogger.Info(cfg.Logo)
-	logger.GlobalLogger.Info(cfg.Subscribe)
-	logger.GlobalLogger.Infof(cfg.DonateSOL)
-	logger.GlobalLogger.Infof(cfg.DonateEVM)
-	time.Sleep(time.Second * 5)
+	helpers.PrintStartupMessages()
 
 	accConfigPath, configPath, statePath, err := helpers.AllPathInit()
 	if err != nil {
 		logger.GlobalLogger.Fatalf("Ошибка инициализации путей конфигурационных файлов: %v", err)
 	}
 
-	accConfig, err := account.LoadRandomConfig(accConfigPath)
-	if err != nil {
-		logger.GlobalLogger.Fatalf("не удалось загрузить конфигурацию для рандомизации: %v", err)
-	}
-	logger.GlobalLogger.Info("конфигурация рандомизации успешно загружена.")
-
-	accounts, err := account.CreateAccounts(accConfig.Wallets)
+	accounts, accConfig, err := helpers.AccsInit(accConfigPath)
 	if err != nil {
 		logger.GlobalLogger.Fatalf("ошибка создания аккаунтов: %v", err)
-	}
-
-	if len(accounts) == 0 {
-		logger.GlobalLogger.Fatalf("Нет созданных аккаунтов. Проверьте приватные ключи в конфигурации.")
 	}
 
 	config, err := cfg.LoadConfig(configPath)
@@ -53,20 +39,11 @@ func main() {
 	}
 	logger.GlobalLogger.Info("Основная конфигурация успешно загружена.")
 
-	var clients = make(map[string]*ethClient.Client)
-	for chain, rpc := range cfg.RPCs {
-		client, err := ethClient.NewClient(rpc)
-		if err != nil {
-			logger.GlobalLogger.Errorf("Ошибка создания eth client для сети %s: %v", chain, err)
-			continue
-		}
-		clients[chain] = client
+	clients, err := helpers.ClientsInit()
+	if err != nil {
+		logger.GlobalLogger.Fatal(err)
 	}
 	defer ethClient.CloseAllClients(clients)
-
-	if len(clients) == 0 {
-		logger.GlobalLogger.Fatalf("Не удалось создать ни одного клиента. Проверьте настройки RPC.")
-	}
 
 	mods, err := modules.InitializeModules(*config, clients)
 	if err != nil {

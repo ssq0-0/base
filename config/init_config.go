@@ -14,6 +14,7 @@ import (
 type Config struct {
 	DexConfig         DexConfig         `json:"dex"`
 	BridgeConfig      BridgeConfig      `json:"bridge"`
+	RefuelConfig      RefuelConfig      `json:"refuel"`
 	DomainsConfig     DomainsConfig     `json:"domains"`
 	DmailConfig       DmailConfig       `json:"dmail"`
 	LiquidPoolsConfig LiquidPoolsConfig `json:"liquid_pools"`
@@ -41,12 +42,19 @@ type WoofiConfig struct {
 }
 
 type BridgeConfig struct {
-	SwapCA      string `json:"swap_ca"`
-	EthRouterCA string `json:"eth_router"`
-	FeeCA       string `json:"fee_ca"`
-	SwapABIPath string `json:"swap_abi_path"`
-	FeeABIPath  string `json:"fee_abi_path"`
-	SwapUSDCCa  string `json:"swap_usdc_ca"`
+	SwapAddresses map[string]string `json:"swap_ca"`
+	FeeAdresses   map[string]string `json:"fee_ca"`
+	SwapABIPath   string            `json:"swap_abi_path"`
+	FeeABIPath    string            `json:"fee_abi_path"`
+}
+
+type RefuelConfig struct {
+	ABIPath         string `json:"api_path"`
+	OptimismSocket  string `json:"optimism_socket"`
+	ArbitrumSocket  string `json:"arbirum_socket"`
+	AvalancheSocket string `json:"avalanche_socket"`
+	PolygonSocket   string `json:"polygon_socket"`
+	BaseSocket      string `json:"base_socket"`
 }
 
 type DomainsConfig struct {

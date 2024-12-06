@@ -3,7 +3,6 @@ package nftmints
 import (
 	"base/account"
 	"base/ethClient"
-	"base/utils"
 	"fmt"
 	"math/big"
 
@@ -16,12 +15,7 @@ type Nft2Me struct {
 	Client *ethClient.Client
 }
 
-func NewNft2Me(client *ethClient.Client, abiPath string) (*Nft2Me, error) {
-	abi, err := utils.ReadAbi(abiPath)
-	if err != nil {
-		return nil, err
-	}
-
+func NewNft2Me(client *ethClient.Client, abi *abi.ABI) (*Nft2Me, error) {
 	return &Nft2Me{
 		ABI:    abi,
 		Client: client,

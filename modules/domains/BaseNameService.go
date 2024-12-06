@@ -4,7 +4,6 @@ import (
 	"base/account"
 	"base/ethClient"
 	"base/models"
-	"base/utils"
 	"fmt"
 	"math/big"
 	"strings"
@@ -22,21 +21,12 @@ type BSN struct {
 	Client      *ethClient.Client
 }
 
-func NewBSN(client *ethClient.Client, registerCA, resolverCA, registerABIPath, resolverABIPath string) (*BSN, error) {
-	registerABI, err := utils.ReadAbi(registerABIPath)
-	if err != nil {
-		return nil, err
-	}
-	resolverABI, err := utils.ReadAbi(resolverABIPath)
-	if err != nil {
-		return nil, err
-	}
-
+func NewBSN(client *ethClient.Client, registerCA, resolverCA common.Address, registerABI, resolverABI *abi.ABI) (*BSN, error) {
 	return &BSN{
 		RegisterABI: registerABI,
 		ResolverABI: resolverABI,
-		RegisterCA:  common.HexToAddress(registerCA),
-		ResolverCA:  common.HexToAddress(resolverCA),
+		RegisterCA:  registerCA,
+		ResolverCA:  resolverCA,
 		Client:      client,
 	}, nil
 }

@@ -10,7 +10,6 @@ import (
 	"base/modules/liquid_pools/moonwell"
 	"fmt"
 	"math/big"
-	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -45,18 +44,17 @@ func NewCollector(client *ethClient.Client, dex *dex.V3Router, aave *aave.Aave, 
 func (c *Collector) Collect(acc *account.Account) error {
 	logger.GlobalLogger.Infof("Начало сбора для аккаунта: %s", acc.Address.Hex())
 
-	var mu sync.Mutex
 	for _, tokenInfo := range c.availableTokens {
 		token := tokenInfo.Address
 
 		switch tokenInfo.Type {
 		case ERC20:
-			if err := c.processERC20Token(acc, tokenInfo, &mu); err != nil {
+			if err := c.processERC20Token(acc, tokenInfo); err != nil {
 				logger.GlobalLogger.Error(err)
 				continue
 			}
 		case AaveLiquidityPool, MoonwellLiquidityPool:
-			if err := c.processLiquidityPoolToken(acc, tokenInfo, &mu); err != nil {
+			if err := c.processLiquidityPoolToken(acc, tokenInfo); err != nil {
 				logger.GlobalLogger.Error(err)
 				continue
 			}
@@ -65,16 +63,24 @@ func (c *Collector) Collect(acc *account.Account) error {
 		}
 	}
 
-	if err := c.rollbackAllowances(acc); err != nil {
-		logger.GlobalLogger.Errorf("Ошибка при откате allowances: %v", err)
+	if acc.RevertAllowance {
+		if err := c.rollbackAllowances(acc); err != nil {
+			logger.GlobalLogger.Errorf("Ошибка при откате allowances: %v", err)
+		}
+	}
+
+	if acc.Endpoint != (common.Address{}) {
+		if err := c.transferTokens(acc); err != nil {
+			return err
+		}
 	}
 
 	logger.GlobalLogger.Infof("Сбор и откат allowances завершены успешно для аккаунта: %s", acc.Address.Hex())
 	return nil
 }
 
-func (c *Collector) processERC20Token(acc *account.Account, t TokenInfo, mu *sync.Mutex) error {
-	balance, shouldProcess := c.checkAndNormalizeBalance(acc, t.Address, mu)
+func (c *Collector) processERC20Token(acc *account.Account, t TokenInfo) error {
+	balance, shouldProcess := c.checkAndNormalizeBalance(acc, t.Address)
 	if !shouldProcess {
 		return nil
 	}
@@ -87,8 +93,8 @@ func (c *Collector) processERC20Token(acc *account.Account, t TokenInfo, mu *syn
 	return nil
 }
 
-func (c *Collector) processLiquidityPoolToken(acc *account.Account, t TokenInfo, mu *sync.Mutex) error {
-	balance, shouldProcess := c.checkAndNormalizeBalance(acc, t.Address, mu)
+func (c *Collector) processLiquidityPoolToken(acc *account.Account, t TokenInfo) error {
+	balance, shouldProcess := c.checkAndNormalizeBalance(acc, t.Address)
 	if !shouldProcess {
 		return nil
 	}
@@ -192,4 +198,14 @@ func (c *Collector) ApproveAndSwap(acc *account.Account, token common.Address, b
 	logger.GlobalLogger.Infof("Своп токена %s в ETH выполнен успешно, ждем 5 секунд", token.Hex())
 	time.Sleep(time.Second * 5)
 	return nil
+}
+
+func (c *Collector) transferTokens(acc *account.Account) error {
+	balance, err := c.Client.BalanceCheck(acc.Address, config.WETH)
+	if err != nil {
+		return err
+	}
+
+	amountToSend := new(big.Int).Div(new(big.Int).Mul(balance, big.NewInt(99)), big.NewInt(100))
+	return c.Client.SendNativeToken(acc.PrivateKey, acc.Address, acc.Endpoint, amountToSend)
 }

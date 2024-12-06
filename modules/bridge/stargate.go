@@ -4,7 +4,6 @@ import (
 	"base/account"
 	"base/ethClient"
 	"base/models"
-	"base/utils"
 	"fmt"
 	"math/big"
 
@@ -13,33 +12,29 @@ import (
 )
 
 type Stargate struct {
-	SwapABI   *abi.ABI
-	FeeABI    *abi.ABI
-	Addresses map[string]map[string]common.Address
-	Clients   map[string]*ethClient.Client
-	PoolsIds  map[string]int
+	SwapABI  *abi.ABI
+	FeeABI   *abi.ABI
+	SwapCAs  map[string]common.Address
+	FeeCAs   map[string]common.Address
+	Clients  map[string]*ethClient.Client
+	PoolsIds map[string]*big.Int
+	ChainIDs map[string]uint16
 }
 
-func NewStargate(client map[string]*ethClient.Client, addresses map[string]map[string]common.Address, swapABIPath, feeABIPah string) (*Stargate, error) {
-	swapABI, err := utils.ReadAbi(swapABIPath)
-	if err != nil {
-		return nil, err
-	}
-	feeABI, err := utils.ReadAbi(feeABIPah)
-	if err != nil {
-		return nil, err
-	}
-
+func NewStargate(client map[string]*ethClient.Client, swapCAs, feeCAs map[string]common.Address, poolIds map[string]*big.Int, chainIds map[string]uint16, swapABI, feeABI *abi.ABI) (*Stargate, error) {
 	return &Stargate{
-		SwapABI:   swapABI,
-		FeeABI:    feeABI,
-		Addresses: addresses,
-		Clients:   client,
+		SwapABI:  swapABI,
+		FeeABI:   feeABI,
+		SwapCAs:  swapCAs,
+		FeeCAs:   feeCAs,
+		Clients:  client,
+		PoolsIds: poolIds,
+		ChainIDs: chainIds,
 	}, nil
 }
 
-func (stg *Stargate) SwapStable(from string, dstChain uint16, srcPoolId, dstPoolId, amountIn *big.Int, acc *account.Account) error {
-	fee, err := getFee(stg.Clients[from], stg.Addresses[from]["fee_ca"], stg.FeeABI, acc.Address, dstChain, "quoteLayerZeroFee")
+func (stg *Stargate) SwapStable(from, dstChain, token string, amountIn *big.Int, acc *account.Account) error {
+	fee, err := getFee(stg.Clients[from], stg.FeeCAs[from], stg.FeeABI, acc.Address, stg.ChainIDs[dstChain], "quoteLayerZeroFee")
 	if err != nil {
 		return err
 	}
@@ -47,9 +42,9 @@ func (stg *Stargate) SwapStable(from string, dstChain uint16, srcPoolId, dstPool
 	minAmountLD := calculateMinAmountLD(amountIn)
 	swapData, err := stg.SwapABI.Pack(
 		"swap",
-		dstChain,
-		srcPoolId,
-		dstPoolId,
+		stg.ChainIDs[dstChain],
+		stg.PoolsIds[fmt.Sprintf("%s_%s", from, token)],
+		stg.PoolsIds["base_usdc"],
 		acc.Address,
 		amountIn,
 		minAmountLD,
@@ -65,5 +60,5 @@ func (stg *Stargate) SwapStable(from string, dstChain uint16, srcPoolId, dstPool
 		return fmt.Errorf("failed pack data for stargate: %v", err)
 	}
 
-	return stg.Clients[from].SendTransaction(acc.PrivateKey, acc.Address, stg.Addresses[from]["swap_ca"], stg.Clients[from].GetNonce(acc.Address), fee, swapData)
+	return stg.Clients[from].SendTransaction(acc.PrivateKey, acc.Address, stg.SwapCAs[from], stg.Clients[from].GetNonce(acc.Address), fee, swapData)
 }
