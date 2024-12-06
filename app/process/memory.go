@@ -21,6 +21,8 @@ type AccountState struct {
 	GeneratedActions   []actions.Action `json:"generated_actions"`
 	GeneratedDuration  time.Duration    `json:"generated_duration"`
 	GeneratedIntervals []time.Duration  `json:"generated_intervals"`
+
+	LastActionIndex int `json:"last_action_index"`
 }
 
 type Memory struct {
@@ -70,13 +72,6 @@ func (m *Memory) SaveState(state *AccountState) error {
 func (m *Memory) LoadState(accountID int) (*AccountState, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
-	_, err := os.Stat(m.StateFilePath)
-	if os.IsNotExist(err) {
-		return nil, nil
-	} else if err != nil {
-		return nil, fmt.Errorf("ошибка доступа к файлу состояния: %v", err)
-	}
 
 	file, err := os.Open(m.StateFilePath)
 	if err != nil {
@@ -144,6 +139,7 @@ func (m *Memory) UpdateState(accountID int, completedAction actions.Action, inte
 	state.LastProcessedTime = time.Now()
 	state.ActionIntervals = append(state.ActionIntervals, interval)
 	state.LastActionTime = time.Now()
+	state.LastActionIndex = len(state.CompletedActions)
 
 	return m.saveStateWithoutLock(state)
 }
@@ -202,6 +198,7 @@ func (m *Memory) saveStateWithoutLock(state *AccountState) error {
 	file.Seek(0, 0)
 	file.Truncate(0)
 	encoder := json.NewEncoder(file)
+
 	return encoder.Encode(states)
 }
 
