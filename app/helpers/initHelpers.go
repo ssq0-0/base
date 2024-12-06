@@ -24,18 +24,15 @@ func PrintStartupMessages() {
 
 func AllPathInit() (string, string, string, error) {
 	rootDir := utils.GetRootDir()
-	log.Printf("rootDir: %s", rootDir)
 	accConfigPath := filepath.Join(rootDir, "account", "account_config.json")
 	if _, err := os.Stat(accConfigPath); os.IsNotExist(err) {
 		return "", "", "", fmt.Errorf("файл не найден: %s", accConfigPath)
 	}
-	log.Printf("accConfigPath: %s", accConfigPath)
-
+	
 	configPath := filepath.Join(rootDir, "config", "config.json")
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return "", "", "", fmt.Errorf("файл не найден: %s", configPath)
 	}
-	log.Printf("configPath: %s", configPath)
 
 	stateFilePath := filepath.Join(rootDir, "app", "process", "state.json")
 	if _, err := os.Stat(stateFilePath); os.IsNotExist(err) {
@@ -45,7 +42,6 @@ func AllPathInit() (string, string, string, error) {
 		}
 		defer file.Close()
 	}
-	log.Printf("statepath: %s", stateFilePath)
 
 	return accConfigPath, configPath, stateFilePath, nil
 }
