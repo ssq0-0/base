@@ -102,7 +102,6 @@ func executeActions(acc *account.Account, state *AccountState, mods *modules.Mod
 		if err := memory.UpdateState(acc.AccountID, action, intervalsLeft[i]); err != nil {
 			logger.GlobalLogger.Errorf("Ошибка обновления состояния аккаунта %d: %v", acc.AccountID, err)
 		}
-		log.Printf("идет апдейт")
 	}
 
 	if err := memory.ClearState(acc.AccountID); err != nil {
