@@ -9,6 +9,7 @@ import (
 	"base/logger"
 	"base/modules"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -81,7 +82,9 @@ func executeActions(acc *account.Account, state *AccountState, mods *modules.Mod
 	intervalsLeft := state.GeneratedIntervals[len(state.CompletedActions):]
 
 	for i, action := range actionsLeft {
-		logger.GlobalLogger.Infof("Аккаунт %d ждет %v перед началом действия %d.", acc.AccountID, intervalsLeft[i], i+1)
+		currentStepNumber := len(state.CompletedActions) + i + 1
+
+		logger.GlobalLogger.Infof("Аккаунт %d ждет %v перед началом действия %d.", acc.AccountID, intervalsLeft[i], currentStepNumber)
 		time.Sleep(intervalsLeft[i])
 
 		logger.GlobalLogger.Infof("Аккаунт %d начинает действие: %s.", acc.AccountID, action.Type)
@@ -99,6 +102,7 @@ func executeActions(acc *account.Account, state *AccountState, mods *modules.Mod
 		if err := memory.UpdateState(acc.AccountID, action, intervalsLeft[i]); err != nil {
 			logger.GlobalLogger.Errorf("Ошибка обновления состояния аккаунта %d: %v", acc.AccountID, err)
 		}
+		log.Printf("идет апдейт")
 	}
 
 	if err := memory.ClearState(acc.AccountID); err != nil {
