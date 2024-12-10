@@ -84,6 +84,6 @@ func (ah AaveHandler) calculateAmountToDeposit(acc *account.Account, client *eth
 }
 
 func (ah AaveHandler) ensureApproval(client *ethClient.Client, acc *account.Account, tokenAddr, spender common.Address, amount *big.Int) error {
-	_, err := client.ApproveTx(tokenAddr, spender, acc.Address, acc.PrivateKey, amount, false)
+	_, err := client.ApproveTx(tokenAddr, spender, acc, amount, false)
 	return err
 }

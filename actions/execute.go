@@ -31,7 +31,7 @@ func (a Action) TakeActions(mods modules.Modules, acc *account.Account, action A
 
 func GetActionHandler(action Action) (handlers.ActionHandler, error) {
 	switch action.Type {
-	case types.UniswapAction, types.PancakeAction, types.WoofiAction:
+	case types.UniswapAction, types.PancakeAction, types.WoofiAction, types.OdosAction, types.OpenOceanAction:
 		return handlers.DexHandler{
 			DexParams:  action.DexParams,
 			ActionType: action.Type,

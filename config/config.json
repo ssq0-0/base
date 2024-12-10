@@ -24,6 +24,12 @@
             "ca": "0x4c4AF8DBc524681930a27b2F1Af5bcC8062E6fB7",
             "abi_path": "modules/abis/woofi.json"
         },
+        "odos":{
+            "ca":"0x19cEeAd7105607Cd444F5ad10dd51356436095a1"
+        },
+        "openocean":{
+            "ca":"0x6352a56caadC4F1E25CD6c75970Fa768A3304e64"
+        },
         "sqrtPriceLimitX96": 0
     },
     "bridge": {

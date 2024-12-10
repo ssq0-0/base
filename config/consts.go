@@ -7,6 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+var Proxy = "http://login:pass@ip:port"
+
 var (
 	RPCs = map[string]string{
 		"eth":       "https://eth.drpc.org",
@@ -21,6 +23,7 @@ var (
 var (
 	Slippage   = big.NewFloat(0.98) // 2% проскальзывания
 	MinBalance = big.NewInt(1e15)
+	// TransferEventSignature = common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
 )
 
 const MaxUint256Str = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
@@ -53,6 +56,7 @@ var (
 	AaveUSDC     = common.HexToAddress("0x4e65fe4dba92790696d040ac24aa414708f5c0ab")
 	MoonwellWETH = common.HexToAddress("0x628ff693426583D9a7FB391E54366292F509D457")
 	WooFiETH     = common.HexToAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
+	ZERO_ADDRESS = common.HexToAddress("0x0000000000000000000000000000000000000000")
 )
 
 var (
@@ -251,7 +255,4 @@ const (
 :::::::....=@:%-:............................................................................................................................-%@@@@@+:..::::::..::
 `
 	Subscribe = `Subscribe <3 		   https://t.me/cheifssq 			<3`
-	DonateSOL = `SOL      <3 6xJrAzhGFJ58snkgeVsPpALMkppCHaoYc841REpT5Py <3`
-	DonateEVM = `EVM      <3 0x899e6Bf266754Df7C1E589367aFAb118fd15735C <3`
-	DonateBTC = `BTC      <3 0x899e6Bf266754Df7C1E589367aFAb118fd15735C <3`
 )

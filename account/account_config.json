@@ -19,20 +19,22 @@
             "endpoint":"",
             "revert_allowance":false,
             "base_name":"",
-            "used_range":85,
+            "used_range":58,
             "used_range_in_pools":11,
             "bridge":"",
             "token":"",
-            "action_num_min":25,
-            "action_num_max":38,
-            "action_time_window_MIN":10,
-            "action_time_window_MAX":11
+            "action_num_min":2,
+            "action_num_max":2,
+            "action_time_window_MIN":1,
+            "action_time_window_MAX":1
         }
     ],
     "modules":{
-        "uniswap":true,
+        "uniswap":false,
         "pancake":false,
         "woofi":false,
+        "odos":true,
+        "openocean":false,
         "refuel":false,
         "dmail":false,
         "zora":false,

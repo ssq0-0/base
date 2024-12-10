@@ -15,9 +15,6 @@ import (
 
 func PrintStartupMessages() {
 	logger.GlobalLogger.Info(config.Logo)
-	logger.GlobalLogger.Info(config.Subscribe)
-	logger.GlobalLogger.Infof(config.DonateSOL)
-	logger.GlobalLogger.Infof(config.DonateEVM)
 	time.Sleep(5 * time.Second)
 }
 
@@ -27,7 +24,7 @@ func AllPathInit() (string, string, string, error) {
 	if _, err := os.Stat(accConfigPath); os.IsNotExist(err) {
 		return "", "", "", fmt.Errorf("файл не найден: %s", accConfigPath)
 	}
-	
+
 	configPath := filepath.Join(rootDir, "config", "config.json")
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return "", "", "", fmt.Errorf("файл не найден: %s", configPath)
@@ -63,7 +60,7 @@ func AccsInit(accConfigPath string) ([]*account.Account, *account.RandomConfig, 
 func ClientsInit() (map[string]*ethClient.Client, error) {
 	var clients = make(map[string]*ethClient.Client)
 	for chain, rpc := range config.RPCs {
-		client, err := ethClient.NewClient(rpc)
+		client, err := ethClient.NewClient(rpc, "account/account_stats.txt")
 		if err != nil {
 			logger.GlobalLogger.Errorf("Ошибка создания eth client для сети %s: %v", chain, err)
 			continue

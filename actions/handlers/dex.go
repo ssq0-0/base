@@ -69,6 +69,34 @@ func (dh DexHandler) Execute(acc *account.Account, mods modules.Modules, client 
 		}
 
 		err = dex.Swap(dh.DexParams.FromToken, dh.DexParams.ToToken, amountToSwap, value, acc)
+	case types.OdosAction:
+		dex := mods.Dex.Odos
+		if err := dh.ensureApproval(client, acc, mods.Dex.Odos.CA, amountToSwap); err != nil {
+			return err
+		}
+
+		if dh.DexParams.FromToken == cfg.WETH {
+			dh.DexParams.FromToken = cfg.ZERO_ADDRESS
+		}
+		if dh.DexParams.ToToken == cfg.WETH {
+			dh.DexParams.ToToken = cfg.ZERO_ADDRESS
+		}
+
+		err = dex.Swap(dh.DexParams.FromToken, dh.DexParams.ToToken, amountToSwap, acc)
+	case types.OpenOceanAction:
+		dex := mods.Dex.OpenOcean
+		if dh.DexParams.FromToken == cfg.WETH {
+			dh.DexParams.FromToken = cfg.WooFiETH
+		}
+		if dh.DexParams.ToToken == cfg.WETH {
+			dh.DexParams.ToToken = cfg.WooFiETH
+		}
+
+		if err := dh.ensureApproval(client, acc, mods.Dex.OpenOcean.CA, amountToSwap); err != nil {
+			return err
+		}
+
+		err = dex.Swap(dh.DexParams.FromToken, dh.DexParams.ToToken, amountToSwap, acc)
 	default:
 		return errors.New("unsupported DEX action type")
 	}
@@ -77,7 +105,7 @@ func (dh DexHandler) Execute(acc *account.Account, mods modules.Modules, client 
 }
 
 func (dh *DexHandler) ensureApproval(client *ethClient.Client, acc *account.Account, routerCA common.Address, value *big.Int) error {
-	_, err := client.ApproveTx(dh.DexParams.FromToken, routerCA, acc.Address, acc.PrivateKey, value, false)
+	_, err := client.ApproveTx(dh.DexParams.FromToken, routerCA, acc, value, false)
 	return err
 }
 

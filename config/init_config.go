@@ -22,10 +22,12 @@ type Config struct {
 }
 
 type DexConfig struct {
-	Uniswap           V3RouterConfig `json:"uniswap"`
-	Pancake           V3RouterConfig `json:"pancake"`
-	Woofi             WoofiConfig    `json:"woofi"`
-	SqrtPriceLimitX96 *big.Int       `json:"sqrtPriceLimitX96"` // default - 0
+	Uniswap           V3RouterConfig       `json:"uniswap"`
+	Pancake           V3RouterConfig       `json:"pancake"`
+	Woofi             WoofiConfig          `json:"woofi"`
+	Odos              OdosOpenOceanConfigs `json:"odos"`
+	OpenOcean         OdosOpenOceanConfigs `json:"openocean"`
+	SqrtPriceLimitX96 *big.Int             `json:"sqrtPriceLimitX96"` // default - 0
 }
 
 type V3RouterConfig struct {
@@ -39,6 +41,10 @@ type V3RouterConfig struct {
 type WoofiConfig struct {
 	CA      string `json:"ca"`
 	ABIPath string `json:"abi_path"`
+}
+
+type OdosOpenOceanConfigs struct {
+	CA string `json:"ca"`
 }
 
 type BridgeConfig struct {

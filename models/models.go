@@ -43,3 +43,23 @@ type SwapPair struct {
 	From common.Address
 	To   common.Address
 }
+
+type AssembleResponse struct {
+	Transaction Transaction `json:"transaction"`
+}
+
+type Transaction struct {
+	Value string `json:"value"`
+	To    string `json:"to"`
+	From  string `json:"from"`
+	Data  string `json:"data"`
+}
+
+type SwapQuoteResponse struct {
+	Data struct {
+		To           string `json:"to"`
+		Data         string `json:"data"`
+		Value        string `json:"value"`
+		EstimatedGas int    `json:"estimatedGas"`
+	} `json:"data"`
+}

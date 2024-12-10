@@ -92,7 +92,7 @@ func approveIfNeeded(acc *account.Account, clients map[string]*ethClient.Client,
 	if utils.IsNativeTokenBySymbol(acc.TokenBridge) {
 		return nil
 	}
-	_, err := clients[acc.Bridge].ApproveTx(tokenAddress, config.LZ_Main_CA[acc.Bridge]["swap_ca"], acc.Address, acc.PrivateKey, amount, false)
+	_, err := clients[acc.Bridge].ApproveTx(tokenAddress, config.LZ_Main_CA[acc.Bridge]["swap_ca"], acc, amount, false)
 	return err
 }
 

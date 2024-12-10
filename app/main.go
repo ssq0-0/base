@@ -1,19 +1,18 @@
 package main
 
 import (
+	"base/account"
+	"base/actions/randomization"
+	cfg "base/config"
+	"base/ethClient"
+	"base/logger"
+	"base/modules"
 	"math/rand"
 	"sync"
 	"time"
 
-	"base/account"
-	"base/ethClient"
-	"base/logger"
-
-	"base/actions/randomization"
 	"base/app/helpers"
 	"base/app/process"
-	cfg "base/config"
-	"base/modules"
 )
 
 func init() {
@@ -70,4 +69,5 @@ func main() {
 
 	wg.Wait()
 	logger.GlobalLogger.Infof("Все действия выполнены. Программа завершает работу.")
+	logger.GlobalLogger.Info(cfg.Subscribe)
 }

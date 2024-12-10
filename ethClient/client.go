@@ -1,6 +1,7 @@
 package ethClient
 
 import (
+	"base/account"
 	"base/config"
 	"base/logger"
 	"base/utils"
@@ -8,10 +9,10 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"log"
 	"math"
 	"math/big"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
@@ -22,17 +23,20 @@ import (
 )
 
 type Client struct {
-	Client *ethclient.Client
+	Client   *ethclient.Client
+	FilePath string
+	Txs      sync.Map
 }
 
-func NewClient(rpc string) (*Client, error) {
+func NewClient(rpc string, filepath string) (*Client, error) {
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Client{
-		Client: client,
+		Client:   client,
+		FilePath: filepath,
 	}, nil
 }
 
@@ -121,17 +125,18 @@ func (c *Client) GetGasValues(msg ethereum.CallMsg) (uint64, *big.Int, *big.Int,
 func (c *Client) GetNonce(address common.Address) uint64 {
 	nonce, err := c.Client.PendingNonceAt(context.Background(), address)
 	if err != nil {
+		logger.GlobalLogger.Warnf("Failed to get nonce for address %s: %v", address.Hex(), err)
 		return 0
 	}
 	return nonce
 }
 
-func (c *Client) ApproveTx(tokenAddr, spender, ownerAddr common.Address, privateKey *ecdsa.PrivateKey, amount *big.Int, rollback bool) (*types.Transaction, error) {
+func (c *Client) ApproveTx(tokenAddr, spender common.Address, acc *account.Account, amount *big.Int, rollback bool) (*types.Transaction, error) {
 	if utils.IsNativeToken(tokenAddr) {
 		return nil, nil
 	}
 
-	allowance, err := c.Allowance(tokenAddr, ownerAddr, spender)
+	allowance, err := c.Allowance(tokenAddr, acc.Address, spender)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get allowance: %v", err)
 	}
@@ -152,46 +157,13 @@ func (c *Client) ApproveTx(tokenAddr, spender, ownerAddr common.Address, private
 		return nil, fmt.Errorf("failed to pack approve data: %v", err)
 	}
 
-	gasLimit, maxPriorityFeePerGas, maxFeePerGas, err := c.GetGasValues(ethereum.CallMsg{
-		From: ownerAddr,
-		To:   &tokenAddr,
-		Data: approveData,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to estimate gas: %v", err)
+	logger.GlobalLogger.Infof("Approve transaction...")
+	if err := c.SendTransaction(acc.PrivateKey, acc.Address, spender, c.GetNonce(acc.Address), big.NewInt(0), approveData); err != nil {
+		return nil, err
 	}
 
-	chainID, err := c.Client.NetworkID(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("failed to get ChainID: %v", err)
-	}
-
-	tx := types.NewTx(&types.DynamicFeeTx{
-		ChainID:   chainID,
-		Nonce:     c.GetNonce(ownerAddr),
-		GasTipCap: maxPriorityFeePerGas,
-		GasFeeCap: maxFeePerGas,
-		Gas:       gasLimit,
-		To:        &tokenAddr,
-		Value:     big.NewInt(0),
-		Data:      approveData,
-	})
-
-	signedTx, err := types.SignTx(tx, types.LatestSignerForChainID(chainID), privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign transaction: %v", err)
-	}
-
-	if err := c.Client.SendTransaction(context.Background(), signedTx); err != nil {
-		return nil, fmt.Errorf("failed to send transaction: %v", err)
-	}
-	if err := c.waitForTransactionSuccess(signedTx.Hash(), 2*time.Minute); err != nil {
-		return nil, fmt.Errorf("error waiting for transaction confirmation: %v", err)
-	}
-
-	logger.GlobalLogger.Infof("Approve transaction sent: https://basescan.org/tx/%s", signedTx.Hash().Hex())
-	time.Sleep(time.Second * 12)
-	return signedTx, nil
+	time.Sleep(time.Second * 15)
+	return nil, nil
 }
 
 func (c *Client) Allowance(tokenAddr, owner, spender common.Address) (*big.Int, error) {
@@ -269,6 +241,7 @@ func (c *Client) SendTransaction(privateKey *ecdsa.PrivateKey, ownerAddr, CA com
 
 	logger.GlobalLogger.Infof("Transaction sent: https://basescan.org/tx/%s", signedTx.Hash().Hex())
 
+	// c.SaveData(ownerAddr, signedTx.Hash())
 	return c.waitForTransactionSuccess(signedTx.Hash(), 1*time.Minute)
 }
 
@@ -308,7 +281,7 @@ func (c *Client) logTransactionError(txHash common.Hash, receipt *types.Receipt)
 	logger.GlobalLogger.Errorf("Transaction failed. txHash: %s", txHash.Hex())
 
 	for _, logEntry := range receipt.Logs {
-		log.Printf("Event Log - Address: %s, Data: %x, Topics: %v",
+		logger.GlobalLogger.Warnf("Event Log - Address: %s, Data: %x, Topics: %v",
 			logEntry.Address.Hex(),
 			logEntry.Data,
 			logEntry.Topics,

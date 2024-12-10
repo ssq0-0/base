@@ -9,7 +9,6 @@ import (
 	"base/logger"
 	"base/modules"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 )
@@ -107,4 +106,6 @@ func executeActions(acc *account.Account, state *AccountState, mods *modules.Mod
 	if err := memory.ClearState(acc.AccountID); err != nil {
 		logger.GlobalLogger.Errorf("Ошибка очистки состояния для аккаунта %d: %v", acc.AccountID, err)
 	}
+	logger.GlobalLogger.Infof("Анализ аккаунтов...")
+	// client.Analizor()
 }

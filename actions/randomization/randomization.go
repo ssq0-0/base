@@ -94,6 +94,12 @@ func (r *Randomizer) getAvailableActions(cfg *account.ModulesConfig, wltcfg *acc
 	if cfg.Woofi {
 		actionMap[types.WoofiAction] = true
 	}
+	if cfg.OpenOcean {
+		actionMap[types.OpenOceanAction] = true
+	}
+	if cfg.Odos {
+		actionMap[types.OdosAction] = true
+	}
 	if cfg.Refuel {
 		actionMap[types.RefuelAction] = true
 	}
@@ -134,7 +140,7 @@ func (r *Randomizer) getAvailableActions(cfg *account.ModulesConfig, wltcfg *acc
 }
 func (r *Randomizer) GenerateSingleAction(actionType types.ActionType, acc *account.Account) (actions.Action, error) {
 	switch actionType {
-	case types.UniswapAction, types.PancakeAction, types.WoofiAction:
+	case types.UniswapAction, types.PancakeAction, types.WoofiAction, types.OdosAction, types.OpenOceanAction:
 		return r.generateSwapAction(actionType, acc)
 	case types.ZoraAction, types.NFT2MeAction:
 		return r.generateNFTAction(actionType)

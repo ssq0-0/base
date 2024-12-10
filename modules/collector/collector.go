@@ -143,7 +143,7 @@ func (c *Collector) rollbackAllowances(acc *account.Account) error {
 		for _, protocolCA := range protocols {
 			logger.GlobalLogger.Infof("Устанавливаем allowance на ноль для токена %s и протокола %s (%s)", token.Hex(), protocolCA.Hex(), protocolCA.Hex())
 
-			_, err := c.Client.ApproveTx(token, protocolCA, acc.Address, acc.PrivateKey, big.NewInt(0), true)
+			_, err := c.Client.ApproveTx(token, protocolCA, acc, big.NewInt(0), true)
 			if err != nil {
 				continue
 			}
@@ -185,7 +185,7 @@ func (c *Collector) ApproveAndSwap(acc *account.Account, token common.Address, b
 		return nil
 	}
 
-	_, err := c.Client.ApproveTx(token, c.Dex.RouterCA, acc.Address, acc.PrivateKey, config.MaxUint256, false)
+	_, err := c.Client.ApproveTx(token, c.Dex.RouterCA, acc, config.MaxUint256, false)
 	if err != nil {
 		return fmt.Errorf("ошибка аппрува токена %s: %v", token.Hex(), err)
 	}

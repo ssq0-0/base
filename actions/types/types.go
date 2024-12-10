@@ -46,6 +46,8 @@ const (
 	UniswapAction          ActionType = "uniswap"
 	PancakeAction          ActionType = "pancake"
 	WoofiAction            ActionType = "woofi"
+	OdosAction             ActionType = "odos"
+	OpenOceanAction        ActionType = "openocean"
 	ZoraAction             ActionType = "zora"
 	NFT2MeAction           ActionType = "nft2me"
 	BaseNameAction         ActionType = "basenames"

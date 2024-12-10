@@ -41,6 +41,8 @@ type ModulesConfig struct {
 	Uniswap   bool `json:"uniswap"`
 	Pancake   bool `json:"pancake"`
 	Woofi     bool `json:"woofi"`
+	OpenOcean bool `json:"openocean"`
+	Odos      bool `json:"odos"`
 	Refuel    bool `json:"refuel"`
 	Zora      bool `json:"zora"`
 	NFT2Me    bool `json:"nft2me"`

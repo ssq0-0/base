@@ -32,9 +32,11 @@ type Modules struct {
 }
 
 type DexModules struct {
-	Pancake *dex.V3Router
-	Uniswap *dex.V3Router
-	Woofi   *dex.WooFi
+	Pancake   *dex.V3Router
+	Uniswap   *dex.V3Router
+	Woofi     *dex.WooFi
+	Odos      *dex.Odos
+	OpenOcean *dex.OpenOcean
 }
 
 type LiquidPoolsModules struct {
@@ -133,10 +135,22 @@ func initializeDexModules(client *ethClient.Client, cfg config.Config) (*DexModu
 		return nil, fmt.Errorf("failed init Woofi: %v", err)
 	}
 
+	odos, err := dex.NewOdos(client, common.HexToAddress(cfg.DexConfig.Odos.CA), &config.Proxy)
+	if err != nil {
+		return nil, fmt.Errorf("failed init Odos: %v", err)
+	}
+
+	openOcean, err := dex.NewOpenOcean(client, common.HexToAddress(cfg.DexConfig.OpenOcean.CA), &config.Proxy)
+	if err != nil {
+		return nil, fmt.Errorf("failed init Odos: %v", err)
+	}
+
 	return &DexModules{
-		Pancake: pancake,
-		Uniswap: uniswap,
-		Woofi:   woofi,
+		Pancake:   pancake,
+		Uniswap:   uniswap,
+		Woofi:     woofi,
+		Odos:      odos,
+		OpenOcean: openOcean,
 	}, nil
 }
 
