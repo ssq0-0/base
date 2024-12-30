@@ -1,0 +1,58 @@
+{
+    "_example_wallet_config":{
+        "private_key":"privateKey1",
+        "endpoint":"по желанию. Указать адрес кошелька, на который нужно будет отправить все средства после работы коллектора(по окончанию отработки софта)",
+        "revert_allowance":"указать true(нужно)/false(не нужно) откатывать апрувы при работе коллектора",
+        "base_name":"поместите здесь имя для вашего BaseName. Формат - 'examplebasename'. Без '.base.eth'",
+        "used_range":"здесь должно быть целое число. Это процент от баланса, который используется в процессе работы.",
+        "used_range_in_pools":"тоже самое, что и выше, но для пулов ликвидности. Рекомендация - максимум 20-30.",
+        "bridge":"если нужен депозит в сеть перед началом- пишем здесь название сети из которой будет бридж. Формат - 'optimism', 'arbitrum', 'avalanche'. Полностью, без привычных сокращений",
+        "token":"если нужен депозит в сеть перед началом - пишем здесь название токена. Формат - 'usdt', 'usdc'...",
+        "action_num_min":"здесь должно быть целое число. Это минимальное количество действий для аккаунта",
+        "action_num_max":"здесь должно быть целое число. Это максимальное количество действий для аккаунта",
+        "action_time_window_MIN":"тоже самое, что и выше пунктом, но для времени выполнения аккаунта. Указывать в минутах",
+        "action_time_window_MAX":"максимальное время выполнения аккаунта. Указывать в минутах"
+    },
+    "wallets":[
+        {
+            "private_key":"",
+            "endpoint":"",
+            "revert_allowance":false,
+            "base_name":"",
+            "used_range":58,
+            "used_range_in_pools":11,
+            "bridge":"",
+            "token":"",
+            "action_num_min":2,
+            "action_num_max":2,
+            "action_time_window_MIN":1,
+            "action_time_window_MAX":1
+        }
+    ],
+    "modules":{
+        "uniswap":false,
+        "pancake":false,
+        "woofi":false,
+        "odos":true,
+        "openocean":false,
+        "refuel":false,
+        "dmail":false,
+        "zora":false,
+        "nft2me":false,
+        "aave":false,
+        "moonwell":false,
+        "basenames": false,
+        "collector_mod":false
+    },
+    "nft_ca":{
+        "nf2me":{
+            "0x9990C5bB838A9E8772082B29c87198B6abd439a1":"0.0002",
+            "0x716764D9bCb01743370e86493a7F458aCEfB113f":"0.0002",
+            "0xA402Ef3Ff226aB45e60b4D3dbd5ACe5635D5Fd7d":"0.0002"
+        },
+        "zora":{
+            "0x4E344A4C22765161F2c038F2E9354d6f3ba8e94A":"0.000051",
+            "0xb4703a3a73aec16e764cbd210b0fde9efdab8941":"0.000042"
+        }
+    }
+}
